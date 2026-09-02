@@ -15,7 +15,8 @@ class DuplicateResourceError(DatabaseError):
     def __init__(self, resource: str, detail: str | None = None):
         self.message = f"{resource} already exists"
         self.detail = detail
-        super().__init__(self.message)
+        super().__init__(message=self.message, detail=detail)
+
 
 
 class TeamCapacityError(DatabaseError):

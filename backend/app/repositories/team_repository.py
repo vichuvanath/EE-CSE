@@ -209,3 +209,92 @@ def get_team_with_members(team_id: str) -> Optional[TeamWithMembers]:
         )
     except Exception as e:
         raise DatabaseError(detail=str(e))
+
+
+def get_team_details_for_student(student_id: str) -> Optional[dict]:
+    try:
+        supabase = get_supabase_client()
+        
+        # 1. Find team_id for student
+        membership = (
+            supabase.table("team_members")
+            .select("team_id")
+            .eq("student_id", student_id)
+            .execute()
+        )
+        if not membership.data:
+            return None
+
+        team_id = membership.data[0]["team_id"]
+
+        # 2. Get team record
+        team_res = supabase.table("teams").select("*").eq("id", team_id).execute()
+        if not team_res.data:
+            return None
+        team_data = team_res.data[0]
+
+        # 3. Get team members junction records
+        members_res = (
+            supabase.table("team_members")
+            .select("*")
+            .eq("team_id", team_id)
+            .execute()
+        )
+        member_records = members_res.data or []
+        student_ids = [m["student_id"] for m in member_records if "student_id" in m]
+
+        # Map is_team_leader or leader_id
+        leader_id = team_data.get("leader_id") or team_data.get("team_leader_id")
+
+        # 4. Get student profiles
+        student_profiles = []
+        if student_ids:
+            prof_res = supabase.table("profiles").select("*").in_("id", student_ids).execute()
+            profiles_by_id = {p["id"]: p for p in (prof_res.data or [])}
+
+            for idx, m in enumerate(member_records):
+                sid = m["student_id"]
+                p = profiles_by_id.get(sid, {})
+                
+                # Check team leader status
+                is_leader = m.get("is_team_leader", False) or (leader_id and sid == leader_id) or (idx == 0 and not leader_id)
+
+                student_profiles.append({
+                    "id": sid,
+                    "roll_number": p.get("roll_number"),
+                    "full_name": p.get("full_name"),
+                    "is_team_leader": bool(is_leader),
+                })
+
+        # Find leader info object
+        leader_info = next((sp for sp in student_profiles if sp["is_team_leader"]), None)
+        if not leader_info and student_profiles:
+            leader_info = student_profiles[0]
+            leader_info["is_team_leader"] = True
+
+        # 5. Get advisor profile if faculty_id is assigned
+        advisor_info = None
+        faculty_id = team_data.get("faculty_id") or team_data.get("advisor_id")
+        if faculty_id:
+            fac_res = supabase.table("profiles").select("*").eq("id", faculty_id).execute()
+            if fac_res.data:
+                fac = fac_res.data[0]
+                advisor_info = {
+                    "id": fac.get("id"),
+                    "full_name": fac.get("full_name"),
+                    "email": fac.get("email"),
+                }
+
+        return {
+            "team_id": str(team_data["id"]),
+            "name": team_data.get("name"),
+            "project_title": team_data.get("project_title"),
+            "team_leader": leader_info,
+            "members": student_profiles,
+            "batch": team_data.get("batch", "2023-2027"),
+            "section": team_data.get("section", "A"),
+            "advisor": advisor_info,
+        }
+    except Exception as e:
+        raise DatabaseError(detail=str(e))
+
