@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ProgressCreate(BaseModel):
@@ -16,6 +16,8 @@ class ProgressUpdate(BaseModel):
 
 
 class ProgressResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     team_id: str
     week_number: int
@@ -23,6 +25,3 @@ class ProgressResponse(BaseModel):
     content: str
     submitted_by: Optional[str] = None
     submitted_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True

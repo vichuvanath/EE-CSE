@@ -30,6 +30,18 @@ def get_user_by_email(email: str) -> Optional[UserResponse]:
         raise DatabaseError(detail=str(e))
 
 
+def get_user_by_roll_number(roll_number: str) -> Optional[UserResponse]:
+    try:
+        supabase = get_supabase_client()
+        result = supabase.table("profiles").select("*").eq("roll_number", roll_number).execute()
+        if not result.data:
+            return None
+        return UserResponse(**result.data[0])
+    except Exception as e:
+        raise DatabaseError(detail=str(e))
+
+
+
 def get_all_users() -> list[UserResponse]:
     try:
         supabase = get_supabase_client()

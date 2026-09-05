@@ -156,3 +156,15 @@ def remove_student_from_team(student_id: str, team_id: str) -> bool:
         "student_id", student_id
     ).eq("team_id", team_id).execute()
     return True
+
+
+def get_my_team(student_id: str) -> dict:
+    from app.repositories.team_repository import get_team_details_for_student
+    team_details = get_team_details_for_student(student_id)
+    if not team_details:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student is not assigned to a team",
+        )
+    return team_details
+

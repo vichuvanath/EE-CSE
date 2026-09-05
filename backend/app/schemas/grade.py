@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from decimal import Decimal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class GradeCreate(BaseModel):
@@ -20,6 +20,8 @@ class GradeVisibilityUpdate(BaseModel):
 
 
 class GradeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     progress_report_id: str
     faculty_id: str
@@ -28,6 +30,3 @@ class GradeResponse(BaseModel):
     is_visible: bool = False
     graded_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
