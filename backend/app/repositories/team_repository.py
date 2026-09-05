@@ -272,18 +272,34 @@ def get_team_details_for_student(student_id: str) -> Optional[dict]:
             leader_info = student_profiles[0]
             leader_info["is_team_leader"] = True
 
-        # 5. Get advisor profile if faculty_id is assigned
+        # 5. Get advisor profile if faculty_id is assigned (or through advisor_team_assignments)
         advisor_info = None
         faculty_id = team_data.get("faculty_id") or team_data.get("advisor_id")
+        if not faculty_id:
+            try:
+                asg_res = (
+                    supabase.table("advisor_team_assignments")
+                    .select("advisor_id")
+                    .eq("team_id", team_id)
+                    .execute()
+                )
+                if asg_res.data and len(asg_res.data) > 0:
+                    faculty_id = asg_res.data[0].get("advisor_id")
+            except Exception:
+                pass
+
         if faculty_id:
-            fac_res = supabase.table("profiles").select("*").eq("id", faculty_id).execute()
-            if fac_res.data:
-                fac = fac_res.data[0]
-                advisor_info = {
-                    "id": fac.get("id"),
-                    "full_name": fac.get("full_name"),
-                    "email": fac.get("email"),
-                }
+            try:
+                fac_res = supabase.table("profiles").select("*").eq("id", faculty_id).execute()
+                if fac_res.data:
+                    fac = fac_res.data[0]
+                    advisor_info = {
+                        "id": str(fac.get("id")),
+                        "full_name": fac.get("full_name"),
+                        "email": fac.get("email"),
+                    }
+            except Exception:
+                pass
 
         return {
             "team_id": str(team_data["id"]),

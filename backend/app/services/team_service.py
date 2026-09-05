@@ -123,7 +123,7 @@ def add_student_to_team(student_id: str, team_id: str) -> dict:
     profile = (
         supabase.table("profiles").select("role").eq("id", student_id).execute()
     )
-    if not profile.data or profile.data[0]["role"] != "STUDENT":
+    if not profile.data or (profile.data[0].get("role") or "").strip().upper() != "STUDENT":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User is not a student",

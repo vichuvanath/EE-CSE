@@ -237,7 +237,12 @@ def search_advisor_records(
             for tid, proj in projects_by_team.items():
                 title = proj.get("title", "")
                 domain = proj.get("domain", "") or ""
-                tech = proj.get("technologies", "") or ""
+                tech = proj.get("technologies_used", "") or proj.get("technologies", "") or ""
+                sub = subs_by_team.get(tid, {})
+                sub_status = sub.get("status", "NOT_SUBMITTED") if sub else "NOT_SUBMITTED"
+
+                if status_filter and sub_status.upper() != status_filter.upper():
+                    continue
 
                 if not q_clean or q_clean in title.lower() or q_clean in domain.lower() or q_clean in tech.lower():
                     project_results.append({
@@ -247,6 +252,7 @@ def search_advisor_records(
                         "technologies": tech,
                         "team_id": tid,
                         "team_name": teams_map.get(tid, ""),
+                        "submission_status": sub_status,
                     })
 
         # Populate Evaluation Results

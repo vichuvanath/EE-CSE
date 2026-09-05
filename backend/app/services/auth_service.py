@@ -106,7 +106,7 @@ def advisor_login(advisor_id: str, password: str) -> Dict:
             detail="Access denied: Only advisor accounts can log in here",
         )
 
-    # 3. Authenticate password via Supabase Auth or mock verify
+    # 3. Authenticate password via Supabase Auth
     if settings.SUPABASE_URL and settings.SUPABASE_ANON_KEY:
         try:
             supabase = get_supabase_client()
@@ -114,19 +114,19 @@ def advisor_login(advisor_id: str, password: str) -> Dict:
                 "email": user.email,
                 "password": password,
             })
+        except HTTPException:
+            raise
         except Exception:
-            # Fallback password check for test suite / local dev
-            if password in ["wrong_password", "invalid_password", "wrong"]:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid credentials",
-                )
-    else:
-        if password in ["wrong_password", "invalid_password", "wrong"]:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials",
             )
+    else:
+        # If Supabase Auth is not configured, deny access securely
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
 
     # 4. Issue signed Advisor JWT token
     payload = {

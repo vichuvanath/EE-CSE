@@ -58,6 +58,7 @@ def get_advisor_teams_summary(advisor_id: str) -> List[Dict[str, Any]]:
                 if is_leader:
                     leader_info = {
                         "id": sid,
+                        "student_id": sid,
                         "roll_number": p.get("roll_number"),
                         "full_name": p.get("full_name", ""),
                         "email": p.get("email"),
@@ -68,16 +69,48 @@ def get_advisor_teams_summary(advisor_id: str) -> List[Dict[str, Any]]:
             project_title = proj.get("title") or team.get("project_title") or team.get("name")
             submission_status = "SUBMITTED" if sub and sub.get("status") == "SUBMITTED" else "DRAFT"
 
+            # Build full member list for team
+            formatted_members = []
+            for idx, m in enumerate(t_members):
+                sid = str(m["student_id"])
+                p = profiles_by_id.get(sid, {})
+                is_leader = m.get("is_team_leader", False) or (leader_id and sid == str(leader_id)) or (idx == 0 and not leader_id)
+                formatted_members.append({
+                    "id": sid,
+                    "student_id": sid,
+                    "roll_number": p.get("roll_number"),
+                    "full_name": p.get("full_name", ""),
+                    "email": p.get("email"),
+                    "is_team_leader": bool(is_leader),
+                    "is_leader": bool(is_leader),
+                })
+
+            # Check evaluation status
+            eval_record = None
+            eval_status = "PENDING"
+            try:
+                eval_res = supabase.table("evaluations").select("*").eq("team_id", tid).execute()
+                if eval_res.data:
+                    eval_record = eval_res.data[0]
+                    eval_status = eval_record.get("status", "EVALUATED")
+            except Exception:
+                pass
+
             summaries.append({
                 "team_id": tid,
+                "id": tid,
                 "name": team.get("name", ""),
                 "project_title": project_title,
+                "leader": leader_info,
                 "team_leader": leader_info,
                 "member_count": len(t_members),
+                "members": formatted_members,
                 "batch": team.get("batch", "2023-2027"),
                 "section": team.get("section", "A"),
                 "submission_status": submission_status,
-                "evaluation_status": None,
+                "evaluation_status": eval_status,
+                "evaluation": eval_record,
+                "created_at": team.get("created_at"),
             })
 
         return summaries

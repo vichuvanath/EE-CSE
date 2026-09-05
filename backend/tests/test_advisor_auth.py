@@ -11,8 +11,10 @@ client = TestClient(app)
 
 class TestAdvisorAuthAPI:
 
+    @patch("app.services.auth_service.get_supabase_client")
     @patch("app.repositories.user_repository.get_user_by_email")
-    def test_advisor_login_success_by_email(self, mock_get_user):
+    def test_advisor_login_success_by_email(self, mock_get_user, mock_supabase):
+        mock_supabase.return_value.auth.sign_in_with_password.return_value = MagicMock()
         mock_get_user.return_value = UserResponse(
             id="advisor-uuid-101",
             email="prof.smith@college.edu",
@@ -48,9 +50,11 @@ class TestAdvisorAuthAPI:
         assert "password" not in data
         assert "password_hash" not in data
 
+    @patch("app.services.auth_service.get_supabase_client")
     @patch("app.repositories.user_repository.get_user_by_id")
     @patch("app.repositories.user_repository.get_user_by_roll_number")
-    def test_advisor_login_success_by_id(self, mock_get_roll, mock_get_id):
+    def test_advisor_login_success_by_id(self, mock_get_roll, mock_get_id, mock_supabase):
+        mock_supabase.return_value.auth.sign_in_with_password.return_value = MagicMock()
         mock_get_id.return_value = UserResponse(
             id="adv-102",
             email="dr.jones@college.edu",

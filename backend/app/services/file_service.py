@@ -111,7 +111,7 @@ async def upload_student_file(student_id: str, category: str, file: UploadFile) 
     if file_size > MAX_FILE_SIZES[cat]:
         max_mb = MAX_FILE_SIZES[cat] // (1024 * 1024)
         raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"File size exceeds maximum limit of {max_mb}MB for category {cat}",
         )
 

@@ -28,20 +28,37 @@ def get_advisor_submissions_summary(advisor_id: str) -> List[Dict[str, Any]]:
         proj_res = supabase.table("projects").select("*").in_("team_id", team_ids).execute()
         projs_by_team = {str(p["team_id"]): p for p in (proj_res.data or [])}
 
+        # Fetch reviews map
+        reviews_by_sub = {}
+        if subs:
+            sub_ids = [str(s["id"]) for s in subs]
+            rev_res = (
+                supabase.table("submission_reviews")
+                .select("submission_id, status")
+                .in_("submission_id", sub_ids)
+                .execute()
+            )
+            for r in (rev_res.data or []):
+                reviews_by_sub[str(r["submission_id"])] = r.get("status", "PENDING")
+
         summaries = []
         for s in subs:
+            sid = str(s["id"])
             tid = str(s["team_id"])
             t = teams_by_id.get(tid, {})
             p = projs_by_team.get(tid, {})
+            review_st = reviews_by_sub.get(sid, "PENDING")
 
             summaries.append({
-                "id": str(s["id"]),
+                "id": sid,
+                "submission_id": sid,
                 "project_id": str(s["project_id"]),
                 "team_id": tid,
                 "project_title": p.get("title") or t.get("project_title") or t.get("name"),
                 "team_name": t.get("name"),
                 "status": s.get("status", "SUBMITTED"),
                 "submitted_at": s.get("submitted_at"),
+                "review_status": review_st,
                 "created_at": s.get("created_at"),
                 "updated_at": s.get("updated_at"),
             })

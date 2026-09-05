@@ -38,8 +38,11 @@ class AdvisorTeamSummaryResponse(BaseModel):
     batch: Optional[str] = "2023-2027"
     section: Optional[str] = "A"
     leader: Optional[TeamLeaderSummary] = None
+    members: Optional[List[AdvisorStudentSummary]] = []
     member_count: int = 0
     submission_status: str = "NOT_SUBMITTED"
+    evaluation_status: Optional[str] = "PENDING"
+    evaluation: Optional[Dict[str, Any]] = None
     created_at: Optional[str] = None
 
 

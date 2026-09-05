@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, status
 from app.schemas.file import FileUploadResponse, MyFilesResponse, FileDeleteResponse
 from app.services.file_service import upload_student_file, get_my_files, delete_student_file
 from app.dependencies.auth import require_student

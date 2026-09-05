@@ -70,17 +70,29 @@ def get_submission_by_id_service(advisor_id: str, submission_id: str) -> Dict[st
 
     project = get_project_by_team_id(team_id)
     team = get_team_by_id(team_id)
+    try:
+        review = get_submission_review(submission_id) or {}
+    except Exception:
+        review = {}
 
     return {
         "id": str(sub["id"]),
+        "submission_id": str(sub["id"]),
         "project_id": str(sub["project_id"]),
         "team_id": team_id,
+        "team_name": team.get("name") if isinstance(team, dict) else (getattr(team, "name", None) if team else None),
+        "project_title": project.title if project else (team.get("project_title") if isinstance(team, dict) else getattr(team, "project_title", None)),
+        "github_url": project.github_url if project else None,
+        "live_demo_url": project.live_demo_url if project else None,
         "status": sub.get("status", "SUBMITTED"),
         "submitted_at": sub.get("submitted_at"),
+        "review_status": review.get("status", "PENDING"),
+        "review_remarks": review.get("remarks"),
+        "reviewed_at": review.get("updated_at") or review.get("created_at"),
         "created_at": sub.get("created_at"),
         "updated_at": sub.get("updated_at"),
         "project": project.model_dump() if project else None,
-        "team": team.model_dump() if team else None,
+        "team": team if isinstance(team, dict) else (team.model_dump() if team else None),
         "members": [],
     }
 
@@ -161,6 +173,15 @@ def get_submission_completeness_service(advisor_id: str, submission_id: str) -> 
         live_demo_done,
     ])
 
+    items = [
+        {"category": "ABSTRACT", "label": "Abstract", "completed": abstract_done},
+        {"category": "REPORT", "label": "Project Report", "completed": report_done},
+        {"category": "PPT", "label": "PPT Presentation", "completed": ppt_done},
+        {"category": "IMAGE", "label": "Project Images", "completed": images_done},
+        {"category": "GITHUB", "label": "GitHub Link", "completed": github_done},
+        {"category": "LIVE_DEMO", "label": "Live Demo Link", "completed": live_demo_done},
+    ]
+
     components = [
         {"name": "Abstract", "category": "ABSTRACT", "is_completed": abstract_done, "description": "Project abstract file"},
         {"name": "Project Report", "category": "REPORT", "is_completed": report_done, "description": "Final project report document"},
@@ -180,6 +201,7 @@ def get_submission_completeness_service(advisor_id: str, submission_id: str) -> 
         "completed_count": completed_count,
         "total_count": 6,
         "all_completed": all_completed,
+        "items": items,
         "components": components,
     }
 
