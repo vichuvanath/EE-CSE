@@ -1,24 +1,35 @@
 import os
 import sys
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
+
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
 from alembic import context
 
-# Add backend root to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Add current directory (backend) to python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.config import settings
+from app.models import Base
 
+# Alembic Config object
 config = context.config
 
+# Interpret the config file for Python logging.
 if config.config_file_name:
     fileConfig(config.config_file_name)
 
-target_metadata = None
+# Set database URL dynamically from app settings / .env
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+
+# Model metadata for autogenerate support
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url", settings.SUPABASE_URL)
+    """Run migrations in 'offline' mode."""
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -31,15 +42,12 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    connectable = config.attributes.get("connection", None)
-
-    if connectable is None:
-        db_url = config.get_main_option("sqlalchemy.url", settings.SUPABASE_URL)
-        connectable = engine_from_config(
-            {"sqlalchemy.url": db_url},
-            prefix="sqlalchemy.",
-            poolclass=pool.NullPool,
-        )
+    """Run migrations in 'online' mode."""
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
 
     with connectable.connect() as connection:
         context.configure(
