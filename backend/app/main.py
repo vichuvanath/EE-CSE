@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import auth, team, project, file, submission, student, advisor
+from app.routers import advisors, api_v1_admin
 
 app = FastAPI(
     title="Student Project Management Portal API",
@@ -17,13 +17,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router, prefix="/api")
-app.include_router(team.router, prefix="/api")
-app.include_router(project.router, prefix="/api")
-app.include_router(file.router, prefix="/api")
-app.include_router(submission.router, prefix="/api")
-app.include_router(student.router, prefix="/api")
-app.include_router(advisor.router, prefix="/api")
+app.include_router(advisors.router)
+app.include_router(api_v1_admin.router)
 
 
 
