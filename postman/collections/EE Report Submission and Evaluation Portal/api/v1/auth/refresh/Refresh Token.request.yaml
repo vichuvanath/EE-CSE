@@ -1,0 +1,16 @@
+$kind: http-request
+description: Obtain a new access token using a valid refresh token.
+url: "{{baseUrl}}/api/v1/auth/refresh"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refresh_token": "your-refresh-token"
+    }
+settings: {}
+examples: ./.resources/Refresh Token.resources/examples
+order: 1000

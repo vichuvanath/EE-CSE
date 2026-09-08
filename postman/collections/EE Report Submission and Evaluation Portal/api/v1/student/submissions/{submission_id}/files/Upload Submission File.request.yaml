@@ -1,0 +1,25 @@
+$kind: http-request
+description: |-
+  Upload a report file for a submission.
+  Validates file size, type, and submission draft status.
+  Stores binary in Supabase Storage and metadata in PostgreSQL.
+url: "{{baseUrl}}/api/v1/student/submissions/:submission_id/files"
+method: POST
+headers:
+  Content-Type: multipart/form-data
+  Accept: application/json
+pathVariables:
+  submission_id: string
+body:
+  type: formdata
+  content:
+    - type: file
+      key: file
+      src: []
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Upload Submission File.resources/examples
+order: 1000

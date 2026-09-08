@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/dashboard/progress"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Overall progress.resources/examples
+order: 1000

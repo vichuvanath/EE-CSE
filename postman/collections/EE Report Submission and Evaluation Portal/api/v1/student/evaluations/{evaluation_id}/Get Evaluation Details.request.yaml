@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Get specific released evaluation feedback and rubric scores.
+  STRICT SECURITY: Returns 404 if evaluation does not exist, belongs to another team, or is not yet released.
+url: "{{baseUrl}}/api/v1/student/evaluations/:evaluation_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  evaluation_id: string
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Evaluation Details.resources/examples
+order: 1000

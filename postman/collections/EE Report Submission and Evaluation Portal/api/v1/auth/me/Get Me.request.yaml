@@ -1,0 +1,13 @@
+$kind: http-request
+description: Protected endpoint returning profile info of the currently authenticated user.
+url: "{{baseUrl}}/api/v1/auth/me"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Me.resources/examples
+order: 1000

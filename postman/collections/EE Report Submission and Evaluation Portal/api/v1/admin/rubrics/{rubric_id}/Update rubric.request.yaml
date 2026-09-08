@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/rubrics/:rubric_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  rubric_id: string
+settings: {}
+examples: ./.resources/Update rubric.resources/examples
+order: 1000

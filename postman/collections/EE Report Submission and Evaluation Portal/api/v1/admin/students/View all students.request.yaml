@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/students"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/View all students.resources/examples
+order: 5000

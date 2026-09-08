@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/evaluations/:evaluation_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  evaluation_id: string
+settings: {}
+examples: ./.resources/Authorized evaluation correction.resources/examples
+order: 3000

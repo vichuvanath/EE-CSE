@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Get profile information of the currently authenticated student.
+  Determines student identity automatically from Bearer token.
+url: "{{baseUrl}}/api/v1/student/profile"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Student Profile.resources/examples
+order: 1000

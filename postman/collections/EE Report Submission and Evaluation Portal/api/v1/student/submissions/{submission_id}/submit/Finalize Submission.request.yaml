@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Finalize and submit a report.
+  Validates class deadline, checks at least 1 file attachment, updates status to 'submitted',
+  and generates notification & audit log entries.
+url: "{{baseUrl}}/api/v1/student/submissions/:submission_id/submit"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  submission_id: string
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Finalize Submission.resources/examples
+order: 1000

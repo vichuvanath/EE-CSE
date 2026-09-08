@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Get detailed information and file attachments for a specific submission.
+  Verifies team ownership.
+url: "{{baseUrl}}/api/v1/student/submissions/:submission_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  submission_id: string
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Submission Details.resources/examples
+order: 3000

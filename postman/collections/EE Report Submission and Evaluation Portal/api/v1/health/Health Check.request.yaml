@@ -1,0 +1,9 @@
+$kind: http-request
+description: Basic health check endpoint to verify backend service status.
+url: "{{baseUrl}}/api/v1/health"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Health Check.resources/examples
+order: 2000

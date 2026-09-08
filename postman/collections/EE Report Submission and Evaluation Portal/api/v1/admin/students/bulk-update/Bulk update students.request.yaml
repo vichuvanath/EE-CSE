@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/students/bulk-update"
+method: PATCH
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Bulk update students.resources/examples
+order: 1000

@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/calendar"
+method: POST
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Create calendar.resources/examples
+order: 3000

@@ -1,0 +1,15 @@
+$kind: http-request
+description: Explicitly mark an announcement as read.
+url: "{{baseUrl}}/api/v1/student/announcements/:announcement_id/read"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  announcement_id: string
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Mark Announcement Read.resources/examples
+order: 1000

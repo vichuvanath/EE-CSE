@@ -21,7 +21,8 @@ if config.config_file_name:
     fileConfig(config.config_file_name)
 
 # Set database URL dynamically from app settings / .env
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Escape '%' for configparser interpolation (e.g. %40 in passwords)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # Model metadata for autogenerate support
 target_metadata = Base.metadata

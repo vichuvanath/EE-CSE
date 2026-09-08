@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Delete a submission file.
+  Only permitted if submission is in draft state.
+  Deletes object from Supabase Storage and metadata from DB.
+url: "{{baseUrl}}/api/v1/student/files/:file_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  file_id: string
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Delete Submission File.resources/examples
+order: 2000

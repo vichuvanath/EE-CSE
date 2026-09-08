@@ -1,0 +1,11 @@
+$kind: http-request
+name: Create Advisor/Guide evaluation
+url: "{{baseUrl}}/api/v1/advisors/teams/:team_id/evaluations"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  team_id: string
+settings: {}
+examples: ./.resources/Create Advisor-Guide evaluation.resources/examples
+order: 1000

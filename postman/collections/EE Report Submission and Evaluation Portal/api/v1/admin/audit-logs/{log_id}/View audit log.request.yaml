@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/audit-logs/:log_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  log_id: string
+settings: {}
+examples: ./.resources/View audit log.resources/examples
+order: 1000

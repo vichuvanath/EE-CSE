@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/submissions/:submission_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  submission_id: string
+settings: {}
+examples: ./.resources/View submission details.resources/examples
+order: 3000

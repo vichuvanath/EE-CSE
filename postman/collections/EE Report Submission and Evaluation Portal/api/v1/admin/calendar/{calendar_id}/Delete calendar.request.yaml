@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/calendar/:calendar_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  calendar_id: string
+settings: {}
+examples: ./.resources/Delete calendar.resources/examples
+order: 2000

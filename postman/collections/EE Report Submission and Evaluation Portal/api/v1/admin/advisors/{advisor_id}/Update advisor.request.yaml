@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/advisors/:advisor_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  advisor_id: string
+settings: {}
+examples: ./.resources/Update advisor.resources/examples
+order: 5000

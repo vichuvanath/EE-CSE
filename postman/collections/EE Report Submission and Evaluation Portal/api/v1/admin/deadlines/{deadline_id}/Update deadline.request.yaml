@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/deadlines/:deadline_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  deadline_id: string
+settings: {}
+examples: ./.resources/Update deadline.resources/examples
+order: 4000

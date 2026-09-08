@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/announcements/:announcement_id/schedule"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  announcement_id: string
+settings: {}
+examples: ./.resources/Schedule announcement.resources/examples
+order: 1000

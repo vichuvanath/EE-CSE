@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/exports/:job_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  job_id: string
+settings: {}
+examples: ./.resources/Check asynchronous export.resources/examples
+order: 1000

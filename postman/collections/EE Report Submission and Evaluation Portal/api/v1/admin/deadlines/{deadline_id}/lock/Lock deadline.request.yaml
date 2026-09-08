@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/deadlines/:deadline_id/lock"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  deadline_id: string
+settings: {}
+examples: ./.resources/Lock deadline.resources/examples
+order: 1000

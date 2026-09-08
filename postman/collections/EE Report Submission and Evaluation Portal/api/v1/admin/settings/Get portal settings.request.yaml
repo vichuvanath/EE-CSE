@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/settings"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Get portal settings.resources/examples
+order: 1000

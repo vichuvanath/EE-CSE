@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Get current project team details for the authenticated student.
+  Includes project info, class name, and team member list.
+url: "{{baseUrl}}/api/v1/student/team"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Team Info.resources/examples
+order: 2000

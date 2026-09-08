@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/student/team/members"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "student_id": "string",
+          "roll_number": "string",
+          "full_name": "string",
+          "email": "string",
+          "joined_at": "2020-10-19T15:43:21.218Z"
+        },
+        {
+          "student_id": "string",
+          "roll_number": "string",
+          "full_name": "string",
+          "email": "string",
+          "joined_at": "1982-01-21T20:07:51.183Z"
+        }
+      ]
+order: 1000

@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/advisors/:advisor_id/status"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  advisor_id: string
+settings: {}
+examples: ./.resources/Change account status.resources/examples
+order: 1000

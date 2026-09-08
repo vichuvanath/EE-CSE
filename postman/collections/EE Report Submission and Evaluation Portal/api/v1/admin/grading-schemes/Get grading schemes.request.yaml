@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/grading-schemes"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Get grading schemes.resources/examples
+order: 2000

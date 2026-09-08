@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/teams/:team_id/history"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  team_id: string
+settings: {}
+examples: ./.resources/Team history.resources/examples
+order: 1000

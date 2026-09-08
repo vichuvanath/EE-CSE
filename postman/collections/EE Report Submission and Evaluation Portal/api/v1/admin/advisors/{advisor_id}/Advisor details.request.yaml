@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/advisors/:advisor_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  advisor_id: string
+settings: {}
+examples: ./.resources/Advisor details.resources/examples
+order: 4000

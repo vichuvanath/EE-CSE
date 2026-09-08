@@ -82,6 +82,7 @@ class SubmissionFile(Base):
     file_path: Mapped[str] = mapped_column(String(512), nullable=False)  # Path inside Supabase Storage bucket
     file_size: Mapped[int] = mapped_column(BigInteger, nullable=False)  # Size in bytes
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # ABSTRACT, REPORT, PPT, IMAGE
     storage_bucket: Mapped[str] = mapped_column(
         String(100), nullable=False, default="reports"
     )

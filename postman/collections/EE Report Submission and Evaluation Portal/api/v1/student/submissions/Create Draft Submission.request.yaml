@@ -1,0 +1,22 @@
+$kind: http-request
+description: Create a new draft submission for the student's team project.
+url: "{{baseUrl}}/api/v1/student/submissions"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "EE401 Interim Progress Report",
+      "description": "Detailed report covering system design",
+      "submission_type": "interim_report"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Create Draft Submission.resources/examples
+order: 3000

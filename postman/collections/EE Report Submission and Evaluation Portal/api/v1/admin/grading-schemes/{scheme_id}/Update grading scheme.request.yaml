@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/grading-schemes/:scheme_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  scheme_id: string
+settings: {}
+examples: ./.resources/Update grading scheme.resources/examples
+order: 1000

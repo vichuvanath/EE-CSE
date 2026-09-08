@@ -1,0 +1,11 @@
+$kind: http-request
+name: Delete/deactivate student
+url: "{{baseUrl}}/api/v1/admin/students/:student_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  student_id: string
+settings: {}
+examples: ./.resources/Delete-deactivate student.resources/examples
+order: 4000

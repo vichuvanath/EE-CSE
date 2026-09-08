@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/classes/:class_id/students"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  class_id: string
+settings: {}
+examples: ./.resources/Enroll student.resources/examples
+order: 3000

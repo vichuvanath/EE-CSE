@@ -1,0 +1,9 @@
+$kind: http-request
+name: Create department/class announcement
+url: "{{baseUrl}}/api/v1/advisors/announcements"
+method: POST
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Create department-class announcement.resources/examples
+order: 3000

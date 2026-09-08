@@ -39,6 +39,7 @@ export interface AuthUser {
   email: string;
   role: UserRole;
   team_id?: string | null;
+  is_active?: boolean;
 }
 
 export interface StudentLoginRequest {
@@ -47,7 +48,7 @@ export interface StudentLoginRequest {
 }
 
 export interface AdvisorLoginRequest {
-  advisor_id: string;
+  email: string;
   password: string;
 }
 
@@ -56,9 +57,16 @@ export interface HodLoginRequest {
   password: string;
 }
 
+export interface UnifiedLoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface LoginResponse {
   access_token: string;
+  refresh_token?: string;
   token_type: string;
+  expires_in?: number;
   user: AuthUser;
 }
 
@@ -67,6 +75,7 @@ export interface CurrentUserResponse {
   email: string;
   full_name: string;
   role: UserRole;
+  is_active?: boolean;
   roll_number?: string | null;
   team_id?: string | null;
 }
@@ -78,23 +87,31 @@ export interface LogoutResponse {
 // 2. Student & Team Types
 export interface StudentProfile {
   id: string;
+  user_id?: string;
   roll_number: string;
   full_name: string;
   email: string;
-  role: string;
+  department?: string;
+  batch?: string;
+  phone_number?: string | null;
+  is_active?: boolean;
+  role?: string;
   team_id?: string | null;
 }
 
 export interface StudentProfileUpdate {
-  full_name: string;
+  full_name?: string;
+  phone_number?: string;
 }
 
 export interface TeamMember {
-  id: string;
+  id?: string;
+  student_id?: string;
   roll_number: string;
   full_name: string;
-  is_team_leader: boolean;
+  is_team_leader?: boolean;
   email?: string;
+  joined_at?: string;
 }
 
 export interface TeamLeader {
@@ -123,14 +140,18 @@ export interface TeamGuide {
 }
 
 export interface MyTeamResponse {
-  team_id: string;
+  team_id?: string;
+  id?: string;
   name: string;
-  project_title: string;
-  batch: string;
-  section: string;
-  team_leader: TeamLeader;
+  project_title?: string;
+  batch?: string;
+  section?: string;
+  class_id?: string;
+  class_name?: string;
+  team_leader?: TeamLeader;
   members: TeamMember[];
-  advisor: TeamAdvisor;
+  advisor?: TeamAdvisor;
+  project?: ProjectResponse;
 }
 
 // 3. Project Types
@@ -163,15 +184,15 @@ export interface ProjectUpdate {
 // 4. File Types
 export interface FileMetadata {
   id: string;
-  project_id: string;
-  team_id: string;
+  project_id?: string;
+  team_id?: string;
   category: FileCategory;
   original_filename: string;
   storage_path: string;
   mime_type: string;
   file_size: number;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface MyFilesResponse {
@@ -180,13 +201,15 @@ export interface MyFilesResponse {
 }
 
 export interface FileUploadResponse {
-  id: string;
-  original_filename: string;
-  category: FileCategory;
-  file_size: number;
-  mime_type: string;
-  storage_path: string;
-  created_at: string;
+  message?: string;
+  file?: FileMetadata;
+  id?: string;
+  original_filename?: string;
+  category?: FileCategory;
+  file_size?: number;
+  mime_type?: string;
+  storage_path?: string;
+  created_at?: string;
 }
 
 export interface FileDeleteResponse {
@@ -346,6 +369,65 @@ export interface WeeklySubmissionHistoryResponse {
 
 // Export ProjectDetail alias for ProjectResponse
 export type ProjectDetail = ProjectResponse;
+
+// Student Notification Types (matches backend schemas)
+export interface StudentNotification {
+  id: string;
+  title: string;
+  message: string;
+  notification_type: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+// Student Announcement Types
+export interface StudentAnnouncement {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  is_read?: boolean;
+}
+
+// Student Evaluation Types (from student perspective)
+export interface StudentEvaluation {
+  id: string;
+  submission_id: string;
+  feedback?: string | null;
+  total_score?: number | null;
+  created_at: string;
+  scores?: {
+    id: string;
+    rubric_criterion: string;
+    max_score: number;
+    score: number;
+    comments?: string;
+  }[];
+}
+
+// Student Deadline Types
+export interface StudentDeadline {
+  id: string;
+  class_id: string;
+  title: string;
+  description?: string;
+  due_at: string;
+  is_overdue: boolean;
+  created_at: string;
+}
+
+// Student Dashboard Types
+export interface StudentDashboardResponse {
+  profile: StudentProfile;
+  team?: MyTeamResponse | null;
+  project?: ProjectResponse | null;
+  deadlines: StudentDeadline[];
+  submissions: any[];
+  unread_notifications_count?: number;
+  recent_notifications: StudentNotification[];
+  evaluations: StudentEvaluation[];
+  announcements: StudentAnnouncement[];
+}
 
 // 7. Faculty / Advisor Portal Types
 export interface TeamEvaluationCriteriaScores {

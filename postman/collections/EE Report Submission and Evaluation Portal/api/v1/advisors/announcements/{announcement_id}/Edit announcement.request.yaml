@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/announcements/:announcement_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  announcement_id: string
+settings: {}
+examples: ./.resources/Edit announcement.resources/examples
+order: 1000

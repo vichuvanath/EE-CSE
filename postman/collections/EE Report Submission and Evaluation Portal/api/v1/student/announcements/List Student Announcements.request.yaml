@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Get announcements targeted to the authenticated student.
+  Tracks read status via announcement_reads.
+url: "{{baseUrl}}/api/v1/student/announcements"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/List Student Announcements.resources/examples
+order: 2000

@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  Update allowed profile fields for the authenticated student.
+  Prohibits modifying role, department, roll number, or user ID.
+url: "{{baseUrl}}/api/v1/student/profile"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "phone_number": null
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Update Student Profile.resources/examples
+order: 2000

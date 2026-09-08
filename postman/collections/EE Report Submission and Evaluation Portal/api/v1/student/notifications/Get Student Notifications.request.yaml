@@ -1,0 +1,13 @@
+$kind: http-request
+description: Get all notifications for the authenticated student.
+url: "{{baseUrl}}/api/v1/student/notifications"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Student Notifications.resources/examples
+order: 4000

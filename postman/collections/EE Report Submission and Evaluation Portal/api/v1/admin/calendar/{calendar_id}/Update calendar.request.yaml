@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/calendar/:calendar_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  calendar_id: string
+settings: {}
+examples: ./.resources/Update calendar.resources/examples
+order: 1000

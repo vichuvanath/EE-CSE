@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/teams/:team_id/members/:student_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  team_id: string
+  student_id: string
+settings: {}
+examples: ./.resources/Remove member.resources/examples
+order: 1000

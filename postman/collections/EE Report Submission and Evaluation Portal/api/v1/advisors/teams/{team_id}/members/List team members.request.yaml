@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/teams/:team_id/members"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  team_id: string
+settings: {}
+examples: ./.resources/List team members.resources/examples
+order: 2000

@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/advisors"
+method: POST
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Create advisor.resources/examples
+order: 3000

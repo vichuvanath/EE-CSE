@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/users/:user_id/role-history"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  user_id: string
+settings: {}
+examples: ./.resources/View role change history.resources/examples
+order: 1000

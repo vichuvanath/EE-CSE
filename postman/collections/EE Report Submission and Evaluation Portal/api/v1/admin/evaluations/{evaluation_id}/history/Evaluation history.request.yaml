@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/evaluations/:evaluation_id/history"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  evaluation_id: string
+settings: {}
+examples: ./.resources/Evaluation history.resources/examples
+order: 1000

@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/evaluations/:evaluation_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  evaluation_id: string
+settings: {}
+examples: ./.resources/Update evaluation.resources/examples
+order: 5000

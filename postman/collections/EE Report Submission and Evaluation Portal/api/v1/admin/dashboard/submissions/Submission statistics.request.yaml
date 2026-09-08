@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/dashboard/submissions"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Submission statistics.resources/examples
+order: 1000

@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/grading-schemes/:scheme_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  scheme_id: string
+settings: {}
+examples: ./.resources/Delete grading scheme.resources/examples
+order: 2000

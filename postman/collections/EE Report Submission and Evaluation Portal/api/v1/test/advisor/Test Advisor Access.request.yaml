@@ -1,0 +1,13 @@
+$kind: http-request
+description: Temporary endpoint accessible to users with 'advisor' or 'admin' role.
+url: "{{baseUrl}}/api/v1/test/advisor"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Test Advisor Access.resources/examples
+order: 1000

@@ -17,6 +17,7 @@ def is_supabase_configured() -> bool:
 
 
 _supabase_client: Optional[Client] = None
+_supabase_admin_client: Optional[Client] = None
 
 
 def get_supabase_client() -> Optional[Client]:
@@ -33,3 +34,17 @@ def get_supabase_client() -> Optional[Client]:
             settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY
         )
     return _supabase_client
+
+def get_supabase_admin_client() -> Optional[Client]:
+    """
+    Returns an initialized Supabase Python Client instance with the service role key.
+    """
+    global _supabase_admin_client
+    if not is_supabase_configured():
+        return None
+
+    if _supabase_admin_client is None:
+        _supabase_admin_client = create_client(
+            settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY
+        )
+    return _supabase_admin_client

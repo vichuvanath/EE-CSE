@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/students/:student_id"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  student_id: string
+settings: {}
+examples: ./.resources/Update student.resources/examples
+order: 3000

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,6 @@ import {
   ArrowRight,
   AlertCircle,
   Loader2,
-  Sparkles,
   Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,101 +16,38 @@ import { useAuthStore } from "@/stores/auth-store";
 import { mockStudentUser, mockAdvisorUser, mockHodUser } from "@/lib/mock-fallback";
 import { useNavigate } from "react-router-dom";
 
-// Form schemas
-const studentSchema = z.object({
-  roll_number: z.string().min(1, "Roll number is required").trim(),
-  team_id: z.string().min(1, "Team ID is required").trim(),
-});
-
-const advisorSchema = z.object({
-  advisor_id: z.string().min(1, "Advisor ID / Email is required").trim(),
+const loginSchema = z.object({
+  email: z.string().min(1, "Email is required").trim(),
   password: z.string().min(1, "Password is required"),
 });
 
-const hodSchema = z.object({
-  hod_id: z.string().min(1, "HOD ID / Department Email is required").trim(),
-  password: z.string().min(1, "Password is required"),
-});
-
-type StudentFormValues = z.infer<typeof studentSchema>;
-type AdvisorFormValues = z.infer<typeof advisorSchema>;
-type HodFormValues = z.infer<typeof hodSchema>;
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [roleTab, setRoleTab] = useState<"student" | "advisor" | "hod">("student");
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [isHodLoggingIn, setIsHodLoggingIn] = useState(false);
 
   const { setAuth } = useAuthStore();
-  const {
-    loginStudent,
-    isStudentLoggingIn,
-    loginAdvisor,
-    isAdvisorLoggingIn,
-  } = useAuth();
+  const { login, isLoggingIn } = useAuth();
 
-  // Student Form
-  const studentForm = useForm<StudentFormValues>({
-    resolver: zodResolver(studentSchema),
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      roll_number: "",
-      team_id: "",
-    },
-  });
-
-  // Advisor Form
-  const advisorForm = useForm<AdvisorFormValues>({
-    resolver: zodResolver(advisorSchema),
-    defaultValues: {
-      advisor_id: "",
+      email: "",
       password: "",
     },
   });
 
-  // HOD Form
-  const hodForm = useForm<HodFormValues>({
-    resolver: zodResolver(hodSchema),
-    defaultValues: {
-      hod_id: "",
-      password: "",
-    },
-  });
-
-  const onStudentSubmit = async (data: StudentFormValues) => {
+  const onSubmit = async (data: LoginFormValues) => {
     setLoginError(null);
     try {
-      await loginStudent(data);
+      await login(data);
     } catch (err) {
       setLoginError(getErrorMessage(err));
     }
   };
 
-  const onAdvisorSubmit = async (data: AdvisorFormValues) => {
-    setLoginError(null);
-    try {
-      await loginAdvisor(data);
-    } catch (err) {
-      setLoginError(getErrorMessage(err));
-    }
-  };
-
-  const onHodSubmit = async (_data: HodFormValues) => {
-    setLoginError(null);
-    setIsHodLoggingIn(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      setAuth(mockHodUser.user, mockHodUser.access_token);
-      navigate("/hod/dashboard");
-    } catch (err) {
-      setLoginError(getErrorMessage(err));
-    } finally {
-      setIsHodLoggingIn(false);
-    }
-  };
-
-  // 1-Click Instant Demo Login (Zero Friction for Presentations / Demos)
   const handleInstantDemoLogin = (role: "student" | "advisor" | "hod") => {
     if (role === "student") {
       setAuth(mockStudentUser.user, mockStudentUser.access_token);
@@ -125,38 +61,17 @@ export function LoginPage() {
     }
   };
 
-  // Fill credentials helper
-  const handleQuickFill = (role: "student" | "advisor" | "hod") => {
-    setRoleTab(role);
-    setLoginError(null);
-    if (role === "student") {
-      studentForm.setValue("roll_number", "23CS001");
-      studentForm.setValue("team_id", "00000000-0000-0000-0000-000000000000");
-    } else if (role === "advisor") {
-      advisorForm.setValue("advisor_id", "prof.smith@college.edu");
-      advisorForm.setValue("password", "YourPassword123");
-    } else {
-      hodForm.setValue("hod_id", "hod.cse@college.edu");
-      hodForm.setValue("password", "HodSecurePass2026");
-    }
-  };
-
-  const isSubmitting = isStudentLoggingIn || isAdvisorLoggingIn || isHodLoggingIn;
-
   return (
     <div className="min-h-screen flex flex-col lg:flex-row font-['IBM_Plex_Sans',sans-serif]">
       {/* ─────────────────────────────────────────────────────────
        * LEFT SECTION: Deep Dark Green Institutional Branding
-       * (Directly matches the SIET-LMS reference screen)
        * ───────────────────────────────────────────────────────── */}
       <div className="w-full lg:w-1/2 bg-[#034419] text-white p-8 sm:p-12 lg:p-16 flex flex-col justify-between">
         <div>
-          {/* Main Title in Bright Accent Yellow */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#FACC15] font-['IBM_Plex_Sans',sans-serif] tracking-tight leading-tight">
             Welcome to SIET-LMS
           </h1>
 
-          {/* Description Paragraph */}
           <p className="mt-6 text-sm sm:text-base text-emerald-100/90 leading-relaxed font-normal">
             The{" "}
             <strong className="text-white font-semibold">
@@ -166,7 +81,6 @@ export function LoginPage() {
             SIET-LMS offers a comprehensive, user-friendly environment tailored to support your growth.
           </p>
 
-          {/* Feature List */}
           <h2 className="text-[#FACC15] font-bold text-base sm:text-lg mt-8 mb-4 font-['IBM_Plex_Sans',sans-serif]">
             SIET - LMS Provides
           </h2>
@@ -191,7 +105,7 @@ export function LoginPage() {
           </ul>
         </div>
 
-        {/* Instant Demo Access (Preserved Functionality) */}
+        {/* Instant Demo Access */}
         <div className="mt-8 pt-6 border-t border-emerald-800/80">
           <div className="flex items-start gap-3 bg-[#023312] p-4 rounded-xl border border-emerald-700/60">
             <div className="p-2 rounded-lg bg-[#16A34A] text-white shrink-0">
@@ -236,13 +150,11 @@ export function LoginPage() {
       </div>
 
       {/* ─────────────────────────────────────────────────────────
-       * RIGHT SECTION: Bright Accent Yellow Background & Mint Card
-       * (Directly matches the SIET-LMS reference screen)
+       * RIGHT SECTION: Single Common Login Form
        * ───────────────────────────────────────────────────────── */}
       <div className="w-full lg:w-1/2 bg-[#FACC15] p-6 sm:p-12 flex items-center justify-center">
-        {/* Light Mint Green Login Container */}
         <div className="w-full max-w-md bg-[#E8F8F0] rounded-2xl shadow-xl border border-emerald-200/80 p-6 sm:p-8">
-          {/* Official SIET Crest Logo (Uploaded Asset) */}
+          {/* Logo */}
           <div className="flex flex-col items-center justify-center mb-6">
             <img
               src="/siet-logo.png"
@@ -252,76 +164,12 @@ export function LoginPage() {
             <h2 className="text-lg font-bold text-[#034419] font-['IBM_Plex_Sans',sans-serif] mt-2 tracking-tight">
               SIET Academic Portal
             </h2>
+            <p className="text-xs text-emerald-700/80 mt-1">
+              Sign in with your email and password
+            </p>
           </div>
 
-          {/* Segmented Role Switcher Tabs */}
-          <div className="grid grid-cols-3 gap-1 bg-emerald-100/80 p-1 rounded-xl mb-5 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => {
-                setRoleTab("student");
-                setLoginError(null);
-              }}
-              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-                roleTab === "student"
-                  ? "bg-[#034419] text-[#FACC15] font-bold shadow-xs"
-                  : "text-[#034419] hover:bg-emerald-200/50"
-              }`}
-            >
-              Student
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setRoleTab("advisor");
-                setLoginError(null);
-              }}
-              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-                roleTab === "advisor"
-                  ? "bg-[#034419] text-[#FACC15] font-bold shadow-xs"
-                  : "text-[#034419] hover:bg-emerald-200/50"
-              }`}
-            >
-              Advisor
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setRoleTab("hod");
-                setLoginError(null);
-              }}
-              className={`py-1.5 rounded-lg transition-all cursor-pointer ${
-                roleTab === "hod"
-                  ? "bg-[#034419] text-[#FACC15] font-bold shadow-xs"
-                  : "text-[#034419] hover:bg-emerald-200/50"
-              }`}
-            >
-              HOD
-            </button>
-          </div>
-
-          {/* Quick-fill helper */}
-          <div className="mb-4 p-2.5 bg-white/90 border border-emerald-300 rounded-lg flex items-center justify-between text-xs text-[#034419]">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#16A34A]" />
-              <span className="font-mono text-[11px] truncate max-w-[210px]">
-                {roleTab === "student"
-                  ? "23CS001"
-                  : roleTab === "advisor"
-                  ? "prof.smith@college.edu"
-                  : "hod.cse@college.edu"}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleQuickFill(roleTab)}
-              className="text-[#16A34A] font-bold hover:underline cursor-pointer text-[11px]"
-            >
-              Auto-fill
-            </button>
-          </div>
-
-          {/* Dynamic Error Banner */}
+          {/* Error Banner */}
           {loginError && (
             <div className="mb-4 bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
@@ -331,213 +179,75 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* STUDENT FORM */}
-          {roleTab === "student" ? (
-            <form onSubmit={studentForm.handleSubmit(onStudentSubmit)} className="space-y-3.5">
-              <div>
-                <input
-                  type="text"
-                  placeholder="Username / Roll Number"
-                  aria-label="Username / Roll Number"
-                  {...studentForm.register("roll_number")}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-[#22C55E] text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 focus:border-[#034419] transition-all placeholder:text-slate-400"
-                />
-                {studentForm.formState.errors.roll_number && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {studentForm.formState.errors.roll_number.message}
-                  </p>
-                )}
-              </div>
+          {/* Single Login Form */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3.5">
+            <div>
+              <input
+                type="email"
+                placeholder="Email Address"
+                aria-label="Email"
+                autoComplete="email"
+                {...form.register("email")}
+                className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-[#22C55E] text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 focus:border-[#034419] transition-all placeholder:text-slate-400"
+              />
+              {form.formState.errors.email && (
+                <p className="mt-1 text-xs text-rose-600">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
+            </div>
 
-              <div>
-                <input
-                  type="text"
-                  placeholder="Team ID (UUID)"
-                  aria-label="Team ID"
-                  {...studentForm.register("team_id")}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-[#22C55E] text-slate-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 focus:border-[#034419] transition-all placeholder:text-slate-400"
-                />
-                {studentForm.formState.errors.team_id && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {studentForm.formState.errors.team_id.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="text-right">
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleQuickFill("student");
-                  }}
-                  className="text-xs text-[#16A34A] font-semibold hover:underline"
-                >
-                  Forgot Password?
-                </a>
-              </div>
-
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                aria-label="Password"
+                autoComplete="current-password"
+                {...form.register("password")}
+                className="w-full px-3.5 py-2.5 pr-10 rounded-lg bg-white border border-[#22C55E] text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 focus:border-[#034419] transition-all placeholder:text-slate-400"
+              />
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#16A34A] hover:bg-[#15803D] text-white text-sm font-bold shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Authenticating...
-                  </>
-                ) : (
-                  <>
-                    Login
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
-            </form>
-          ) : roleTab === "advisor" ? (
-            /* ADVISOR FORM */
-            <form onSubmit={advisorForm.handleSubmit(onAdvisorSubmit)} className="space-y-3.5">
-              <div>
-                <input
-                  type="text"
-                  placeholder="Username / Advisor Email"
-                  aria-label="Advisor ID"
-                  {...advisorForm.register("advisor_id")}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-[#22C55E] text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 focus:border-[#034419] transition-all placeholder:text-slate-400"
-                />
-                {advisorForm.formState.errors.advisor_id && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {advisorForm.formState.errors.advisor_id.message}
-                  </p>
-                )}
-              </div>
+              {form.formState.errors.password && (
+                <p className="mt-1 text-xs text-rose-600">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
+            </div>
 
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  aria-label="Password"
-                  {...advisorForm.register("password")}
-                  className="w-full px-3.5 py-2.5 pr-10 rounded-lg bg-white border border-[#22C55E] text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 focus:border-[#034419] transition-all placeholder:text-slate-400"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-                {advisorForm.formState.errors.password && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {advisorForm.formState.errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="text-right">
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleQuickFill("advisor");
-                  }}
-                  className="text-xs text-[#16A34A] font-semibold hover:underline"
-                >
-                  Forgot Password?
-                </a>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#16A34A] hover:bg-[#15803D] text-white text-sm font-bold shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            <div className="text-right">
+              <a
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                className="text-xs text-[#16A34A] font-semibold hover:underline"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Authenticating...
-                  </>
-                ) : (
-                  <>
-                    Login
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-          ) : (
-            /* HOD FORM */
-            <form onSubmit={hodForm.handleSubmit(onHodSubmit)} className="space-y-3.5">
-              <div>
-                <input
-                  type="text"
-                  placeholder="Username / HOD Email"
-                  aria-label="HOD ID"
-                  {...hodForm.register("hod_id")}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-[#22C55E] text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 focus:border-[#034419] transition-all placeholder:text-slate-400"
-                />
-                {hodForm.formState.errors.hod_id && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {hodForm.formState.errors.hod_id.message}
-                  </p>
-                )}
-              </div>
+                Forgot Password?
+              </a>
+            </div>
 
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  aria-label="Password"
-                  {...hodForm.register("password")}
-                  className="w-full px-3.5 py-2.5 pr-10 rounded-lg bg-white border border-[#22C55E] text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#16A34A]/20 focus:border-[#034419] transition-all placeholder:text-slate-400"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-                {hodForm.formState.errors.password && (
-                  <p className="mt-1 text-xs text-rose-600">
-                    {hodForm.formState.errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="text-right">
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleQuickFill("hod");
-                  }}
-                  className="text-xs text-[#16A34A] font-semibold hover:underline"
-                >
-                  Forgot Password?
-                </a>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#16A34A] hover:bg-[#15803D] text-white text-sm font-bold shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Authenticating...
-                  </>
-                ) : (
-                  <>
-                    Login
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-          )}
+            <button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#16A34A] hover:bg-[#15803D] text-white text-sm font-bold shadow-md transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Authenticating...
+                </>
+              ) : (
+                <>
+                  Login
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
 
           {/* Card Footer */}
           <div className="mt-5 pt-3 border-t border-emerald-200 flex items-center justify-between text-[11px] text-emerald-800/80">

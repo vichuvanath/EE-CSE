@@ -118,3 +118,30 @@ def require_role(*allowed_roles: str) -> Callable:
         return current_user
 
     return role_checker
+
+
+async def require_advisor(user_context: dict) -> dict:
+    """
+    Validates that the provided user context represents an advisor, faculty, or admin.
+    """
+    role = user_context.get("role") if isinstance(user_context, dict) else getattr(user_context, "role", None)
+    if role not in ["advisor", "faculty", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Advisor access required",
+        )
+    return user_context
+
+
+def verify_advisor_team_access(advisor_id: str, team_id: str) -> bool:
+    """
+    Verifies that an advisor has assigned access to a specified team.
+    """
+    from app.repositories import assignment_repository
+    if not assignment_repository.check_assignment(advisor_id, team_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Team is not assigned to this advisor",
+        )
+    return True
+

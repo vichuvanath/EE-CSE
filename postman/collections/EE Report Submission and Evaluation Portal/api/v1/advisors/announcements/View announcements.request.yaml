@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/announcements"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/View announcements.resources/examples
+order: 2000

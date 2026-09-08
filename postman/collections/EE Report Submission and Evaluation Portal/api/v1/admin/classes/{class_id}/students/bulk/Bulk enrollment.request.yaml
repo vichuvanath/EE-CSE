@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/classes/:class_id/students/bulk"
+method: POST
+headers:
+  Accept: application/json
+pathVariables:
+  class_id: string
+settings: {}
+examples: ./.resources/Bulk enrollment.resources/examples
+order: 1000

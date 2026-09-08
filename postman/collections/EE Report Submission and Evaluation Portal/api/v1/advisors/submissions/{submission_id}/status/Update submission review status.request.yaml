@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/submissions/:submission_id/status"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  submission_id: string
+settings: {}
+examples: ./.resources/Update submission review status.resources/examples
+order: 1000

@@ -1,0 +1,9 @@
+$kind: http-request
+description: Database health check endpoint to verify PostgreSQL/database connectivity.
+url: "{{baseUrl}}/api/v1/health/database"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Database Health Check.resources/examples
+order: 1000

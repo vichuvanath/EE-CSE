@@ -1,0 +1,11 @@
+$kind: http-request
+name: Activate/deactivate user
+url: "{{baseUrl}}/api/v1/admin/users/:user_id/status"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  user_id: string
+settings: {}
+examples: ./.resources/Activate-deactivate user.resources/examples
+order: 1000

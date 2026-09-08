@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/student/deadlines?upcoming_only=false"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  queryParams:
+    - key: upcoming_only
+      value: "false"
+      description: Filter for upcoming deadlines only
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "string",
+          "class_id": "string",
+          "title": "string",
+          "due_at": "1987-07-15T14:14:07.402Z",
+          "is_overdue": false,
+          "created_at": "1966-03-19T08:27:39.214Z",
+          "description": "string"
+        },
+        {
+          "id": "string",
+          "class_id": "string",
+          "title": "string",
+          "due_at": "1987-11-11T01:21:58.225Z",
+          "is_overdue": true,
+          "created_at": "2012-05-06T17:57:19.124Z",
+          "description": "string"
+        }
+      ]
+order: 1000

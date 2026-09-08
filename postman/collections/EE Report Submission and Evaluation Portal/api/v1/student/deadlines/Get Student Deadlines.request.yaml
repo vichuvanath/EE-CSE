@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Get list of submission deadlines relevant to the authenticated student's enrolled classes.
+  Read-only endpoint with ISO 8601 timezone-aware comparison.
+url: "{{baseUrl}}/api/v1/student/deadlines?upcoming_only=false"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: upcoming_only
+    value: "false"
+    description: Filter for upcoming deadlines only
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Student Deadlines.resources/examples
+order: 1000

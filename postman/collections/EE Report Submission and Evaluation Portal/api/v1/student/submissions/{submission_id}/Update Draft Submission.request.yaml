@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Update a draft submission before final submission.
+  Modification is rejected if submission has already been submitted or evaluated.
+url: "{{baseUrl}}/api/v1/student/submissions/:submission_id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  submission_id: string
+body:
+  type: json
+  content: |-
+    {
+      "title": null,
+      "description": null,
+      "submission_type": null
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Update Draft Submission.resources/examples
+order: 4000

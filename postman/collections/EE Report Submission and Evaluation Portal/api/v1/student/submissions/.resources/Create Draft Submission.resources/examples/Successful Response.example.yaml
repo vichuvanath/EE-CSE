@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/student/submissions"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  body:
+    type: json
+    content: |-
+      {
+        "title": "EE401 Interim Progress Report",
+        "description": "Detailed report covering system design",
+        "submission_type": "interim_report"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "string",
+        "project_id": "string",
+        "team_id": "string",
+        "title": "string",
+        "submission_type": "string",
+        "status": "string",
+        "created_at": "2006-04-21T12:07:21.197Z",
+        "updated_at": "1956-06-12T17:55:25.972Z",
+        "submitted_by": "string",
+        "description": "string"
+      }
+order: 1000

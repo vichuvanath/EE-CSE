@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends
 from app.dependencies.auth import get_current_user, require_role
 from app.models.user import User, UserRole
 
+__test__ = False
+
 router = APIRouter(prefix="/test", tags=["RBAC Testing (Temporary)"])
 
 

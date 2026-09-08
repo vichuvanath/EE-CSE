@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/rubrics/:rubric_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  rubric_id: string
+settings: {}
+examples: ./.resources/Delete rubric.resources/examples
+order: 2000

@@ -1,0 +1,15 @@
+$kind: http-request
+description: Mark a specific notification as read.
+url: "{{baseUrl}}/api/v1/student/notifications/:notification_id/read"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  notification_id: string
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Mark Notification As Read.resources/examples
+order: 1000

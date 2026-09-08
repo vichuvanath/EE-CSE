@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/deadlines/:deadline_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  deadline_id: string
+settings: {}
+examples: ./.resources/Deadline details.resources/examples
+order: 3000

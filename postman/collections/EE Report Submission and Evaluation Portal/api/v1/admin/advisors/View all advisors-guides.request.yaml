@@ -1,0 +1,9 @@
+$kind: http-request
+name: View all advisors/guides
+url: "{{baseUrl}}/api/v1/admin/advisors"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/View all advisors-guides.resources/examples
+order: 2000

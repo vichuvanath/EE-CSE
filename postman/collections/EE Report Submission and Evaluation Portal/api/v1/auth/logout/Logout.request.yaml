@@ -1,0 +1,9 @@
+$kind: http-request
+description: Terminates the current user session / invalidates Supabase auth token.
+url: "{{baseUrl}}/api/v1/auth/logout"
+method: POST
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Logout.resources/examples
+order: 1000

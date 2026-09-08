@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, status
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -13,6 +14,8 @@ from app.core.security import (
 )
 from app.core.supabase import get_supabase_client
 from app.dependencies.auth import get_current_user
+from app.models.academic import TeamMember
+from app.models.student import Student
 from app.models.user import User, UserRole
 from app.schemas.auth import (
     ForgotPasswordRequest,
@@ -25,6 +28,16 @@ from app.schemas.auth import (
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+class StudentLoginRequest(BaseModel):
+    roll_number: str = Field(..., example="23CS001")
+    team_id: str = Field(..., example="00000000-0000-0000-0000-000000000000")
+
+
+class AdvisorLoginRequest(BaseModel):
+    email: str = Field(..., example="advisor@university.edu")
+    password: str = Field(..., min_length=6, example="password123")
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -119,6 +132,137 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         token_type="bearer",
         expires_in=expires_in,
         user=UserResponse.model_validate(user),
+    )
+
+
+@router.post("/student-login", response_model=TokenResponse)
+def student_login(payload: StudentLoginRequest, db: Session = Depends(get_db)):
+    """
+    Authenticate student using roll number and team ID.
+    Validates that the student exists and is assigned to the specified team.
+    """
+    student = db.query(Student).filter(Student.roll_number == payload.roll_number).first()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "code": "INVALID_CREDENTIALS",
+                    "message": "Invalid roll number",
+                }
+            },
+        )
+
+    user = db.query(User).filter(User.id == student.user_id).first()
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "code": "USER_INACTIVE",
+                    "message": "User account is inactive or not found",
+                }
+            },
+        )
+
+    # Verify student is assigned to the specified team
+    membership = (
+        db.query(TeamMember)
+        .filter(
+            TeamMember.student_id == student.id,
+            TeamMember.team_id == payload.team_id,
+        )
+        .first()
+    )
+    if not membership:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "code": "TEAM_MISMATCH",
+                    "message": "Student is not assigned to the specified team",
+                }
+            },
+        )
+
+    token_data = {"sub": user.id, "email": user.email, "role": user.role}
+    access_token = create_access_token(token_data)
+    refresh_token = create_access_token(
+        token_data, expires_delta=timedelta(days=7)
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            role=user.role,
+            is_active=user.is_active,
+        ),
+    )
+
+
+@router.post("/advisor-login", response_model=TokenResponse)
+def advisor_login(payload: AdvisorLoginRequest, db: Session = Depends(get_db)):
+    """
+    Authenticate advisor/faculty using email and password.
+    """
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "code": "INVALID_CREDENTIALS",
+                    "message": "Invalid email or password",
+                }
+            },
+        )
+
+    if user.role not in [UserRole.ADVISOR, UserRole.ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": {
+                    "code": "FORBIDDEN",
+                    "message": "Account is not an advisor account",
+                }
+            },
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": {
+                    "code": "USER_INACTIVE",
+                    "message": "User account is inactive",
+                }
+            },
+        )
+
+    token_data = {"sub": user.id, "email": user.email, "role": user.role}
+    access_token = create_access_token(token_data)
+    refresh_token = create_access_token(
+        token_data, expires_delta=timedelta(days=7)
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            role=user.role,
+            is_active=user.is_active,
+        ),
     )
 
 

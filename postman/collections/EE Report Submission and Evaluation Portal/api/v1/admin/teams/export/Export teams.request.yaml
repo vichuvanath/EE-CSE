@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/teams/export"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Export teams.resources/examples
+order: 1000

@@ -1,0 +1,15 @@
+$kind: http-request
+description: Get specific announcement content and automatically mark as read.
+url: "{{baseUrl}}/api/v1/student/announcements/:announcement_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  announcement_id: string
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Announcement Details.resources/examples
+order: 2000

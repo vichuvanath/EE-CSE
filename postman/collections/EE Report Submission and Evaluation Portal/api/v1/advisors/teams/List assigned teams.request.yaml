@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/teams"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/List assigned teams.resources/examples
+order: 2000

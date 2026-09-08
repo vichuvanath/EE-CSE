@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/announcements/:announcement_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  announcement_id: string
+settings: {}
+examples: ./.resources/Announcement details.resources/examples
+order: 4000

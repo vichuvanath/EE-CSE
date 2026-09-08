@@ -1,0 +1,10 @@
+$kind: collection
+description: Backend API for Electrical Engineering Report Submission and Evaluation Portal
+variables:
+  baseUrl: /
+  access_token: ""
+  refresh_token: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{access_token}}"

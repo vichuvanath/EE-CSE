@@ -1,0 +1,9 @@
+$kind: http-request
+name: View all marks/grades
+url: "{{baseUrl}}/api/v1/admin/marks"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/View all marks-grades.resources/examples
+order: 2000

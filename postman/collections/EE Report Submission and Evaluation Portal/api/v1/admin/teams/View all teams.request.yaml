@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/teams"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/View all teams.resources/examples
+order: 3000

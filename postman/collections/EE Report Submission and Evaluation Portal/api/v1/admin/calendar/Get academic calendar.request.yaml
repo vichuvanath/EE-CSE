@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/calendar"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Get academic calendar.resources/examples
+order: 2000

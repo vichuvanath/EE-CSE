@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/student/submissions/:submission_id/submit"
+  method: POST
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    submission_id: string
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "string",
+        "project_id": "string",
+        "team_id": "string",
+        "title": "string",
+        "submission_type": "string",
+        "status": "string",
+        "created_at": "1993-08-10T23:56:18.104Z",
+        "updated_at": "2021-12-23T10:50:52.095Z",
+        "submitted_by": "string",
+        "description": "string"
+      }
+order: 1000

@@ -1,0 +1,13 @@
+$kind: http-request
+description: Mark all unread notifications for the authenticated student as read.
+url: "{{baseUrl}}/api/v1/student/notifications/read-all"
+method: PATCH
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Mark All Notifications As Read.resources/examples
+order: 1000

@@ -1,0 +1,11 @@
+$kind: http-request
+name: Show/hide marks
+url: "{{baseUrl}}/api/v1/advisors/evaluations/:evaluation_id/visibility"
+method: PATCH
+headers:
+  Accept: application/json
+pathVariables:
+  evaluation_id: string
+settings: {}
+examples: ./.resources/Show-hide marks.resources/examples
+order: 1000

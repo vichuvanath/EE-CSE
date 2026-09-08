@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Get file metadata and temporary signed download URL.
+  Verifies student team ownership.
+url: "{{baseUrl}}/api/v1/student/files/:file_id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  file_id: string
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Submission File.resources/examples
+order: 1000

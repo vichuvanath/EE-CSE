@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/students/bulk-import"
+method: POST
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Import students.resources/examples
+order: 1000

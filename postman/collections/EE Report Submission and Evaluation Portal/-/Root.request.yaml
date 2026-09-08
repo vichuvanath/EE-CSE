@@ -1,0 +1,9 @@
+$kind: http-request
+description: Root endpoint redirecting/pointing to API health and documentation.
+url: "{{baseUrl}}/"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Root.resources/examples
+order: 1000

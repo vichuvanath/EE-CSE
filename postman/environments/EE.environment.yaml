@@ -1,0 +1,30 @@
+name: EE
+values:
+  - key: base_url
+    value: 'http://localhost:8000'
+  - key: token
+    value: ''
+  - key: refresh_token
+    value: ''
+  - key: student_email
+    value: ''
+  - key: student_password
+    value: ''
+  - key: advisor_email
+    value: ''
+  - key: advisor_password
+    value: ''
+  - key: submission_id
+    value: ''
+  - key: file_id
+    value: ''
+  - key: evaluation_id
+    value: ''
+  - key: announcement_id
+    value: ''
+  - key: notification_id
+    value: ''
+  - key: admin_email
+    value: ''
+  - key: admin_password
+    value: ''

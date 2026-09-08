@@ -88,23 +88,26 @@ apiClient.interceptors.response.use(
       const method = error.config.method?.toUpperCase() || "GET";
 
       // 1. Auth endpoints
-      if (url.includes("/api/auth/student-login")) {
+      if (url.includes("/api/v1/auth/student-login")) {
         return Promise.resolve({ data: mockStudentUser } as any);
       }
-      if (url.includes("/api/auth/advisor-login") || url.includes("/api/auth/advisor/login")) {
+      if (url.includes("/api/v1/auth/advisor-login")) {
         return Promise.resolve({ data: mockAdvisorUser } as any);
       }
-      if (url.includes("/api/auth/me")) {
+      if (url.includes("/api/v1/auth/login")) {
+        return Promise.resolve({ data: mockStudentUser } as any);
+      }
+      if (url.includes("/api/v1/auth/me")) {
         const stored = typeof window !== "undefined" ? localStorage.getItem("siet_user") : null;
         if (stored) return Promise.resolve({ data: JSON.parse(stored) } as any);
         return Promise.resolve({ data: mockStudentUser.user } as any);
       }
-      if (url.includes("/api/auth/logout")) {
+      if (url.includes("/api/v1/auth/logout")) {
         return Promise.resolve({ data: { message: "Logged out successfully" } } as any);
       }
 
       // 2. Student Profile endpoints
-      if (url.includes("/api/student/profile")) {
+      if (url.includes("/api/v1/student/profile")) {
         if (method === "PUT" && error.config.data) {
           const body = typeof error.config.data === "string" ? JSON.parse(error.config.data) : error.config.data;
           const current = typeof window !== "undefined" && localStorage.getItem("siet_student_profile")
@@ -129,12 +132,12 @@ apiClient.interceptors.response.use(
       }
 
       // 3. Team me endpoint
-      if (url.includes("/api/team/me")) {
+      if (url.includes("/api/v1/student/team")) {
         return Promise.resolve({ data: mockTeam } as any);
       }
 
       // 4. Project endpoints
-      if (url.includes("/api/project/me")) {
+      if (url.includes("/api/v1/student/project")) {
         if (method === "PUT" && error.config.data) {
           const body = typeof error.config.data === "string" ? JSON.parse(error.config.data) : error.config.data;
           const current = typeof window !== "undefined" && localStorage.getItem("siet_student_project")
@@ -152,8 +155,8 @@ apiClient.interceptors.response.use(
       }
 
       // 5. Files endpoints
-      if (url.includes("/api/files/upload/")) {
-        const categoryMatch = url.match(/\/api\/files\/upload\/([A-Za-z0-9_]+)/);
+      if (url.includes("/api/v1/student/files/upload/")) {
+        const categoryMatch = url.match(/\/api\/v1\/student\/files\/upload\/([A-Za-z0-9_]+)/);
         const category = (categoryMatch ? categoryMatch[1] : "ABSTRACT") as any;
         const newFile: FileMetadata = {
           id: `file-uuid-${Date.now()}`,
@@ -191,7 +194,7 @@ apiClient.interceptors.response.use(
         } as any);
       }
 
-      const fileDeleteMatch = url.match(/\/api\/files\/([^/]+)$/);
+      const fileDeleteMatch = url.match(/\/api\/v1\/student\/files\/([^/]+)$/);
       if (method === "DELETE" && fileDeleteMatch) {
         const fileId = fileDeleteMatch[1];
         const currentFiles: MyFilesResponse = typeof window !== "undefined" && localStorage.getItem("siet_student_files")
@@ -206,14 +209,14 @@ apiClient.interceptors.response.use(
         return Promise.resolve({ data: { message: "File removed successfully", file_id: fileId } } as any);
       }
 
-      if (url.includes("/api/files/me")) {
+      if (url.includes("/api/v1/student/files")) {
         const stored = typeof window !== "undefined" ? localStorage.getItem("siet_student_files") : null;
         if (stored) return Promise.resolve({ data: JSON.parse(stored) } as any);
         return Promise.resolve({ data: mockFiles } as any);
       }
 
       // 6. Submission endpoints
-      if (url.includes("/api/submission/checklist")) {
+      if (url.includes("/api/v1/student/submissions/checklist")) {
         const currentFiles: MyFilesResponse = typeof window !== "undefined" && localStorage.getItem("siet_student_files")
           ? JSON.parse(localStorage.getItem("siet_student_files")!)
           : mockFiles;
@@ -246,13 +249,13 @@ apiClient.interceptors.response.use(
         return Promise.resolve({ data: computedChecklist } as any);
       }
 
-      if (url.includes("/api/submission/me")) {
+      if (url.includes("/api/v1/student/submissions/me")) {
         const stored = typeof window !== "undefined" ? localStorage.getItem("siet_student_submission") : null;
         if (stored) return Promise.resolve({ data: JSON.parse(stored) } as any);
         return Promise.resolve({ data: mockSubmission } as any);
       }
 
-      if (url.includes("/api/submission/final")) {
+      if (url.includes("/api/v1/student/submissions/final")) {
         const finalSub = {
           submission_id: "sub-uuid-demo-001",
           status: "SUBMITTED",
@@ -267,8 +270,8 @@ apiClient.interceptors.response.use(
 
       // 6. Weekly Submission History endpoints
       if (
-        url.includes("/api/student/submissions/history") ||
-        url.includes("/api/submission/history")
+        url.includes("/api/v1/student/submissions/history") ||
+        url.includes("/api/v1/student/submission/history")
       ) {
         const stored = typeof window !== "undefined" ? localStorage.getItem("siet_weekly_submission_history") : null;
         if (stored) return Promise.resolve({ data: JSON.parse(stored) } as any);
@@ -339,7 +342,7 @@ apiClient.interceptors.response.use(
         return Promise.resolve({ data: currentData } as any);
       }
 
-      if (url.includes("/api/student/submissions/week/") && method === "PUT") {
+      if (url.includes("/api/v1/student/submissions/week/") && method === "PUT") {
         const storedStr = typeof window !== "undefined" ? localStorage.getItem("siet_weekly_submission_history") : null;
         const currentData: import("@/types").WeeklySubmissionHistoryResponse = storedStr
           ? JSON.parse(storedStr)
@@ -359,7 +362,7 @@ apiClient.interceptors.response.use(
         }
       }
 
-      if (url.includes("/api/student/submissions/reset-demo")) {
+      if (url.includes("/api/v1/student/submissions/reset-demo")) {
         if (typeof window !== "undefined") {
           localStorage.setItem("siet_weekly_submission_history", JSON.stringify(mockWeeklySubmissionHistory));
         }
@@ -421,7 +424,7 @@ apiClient.interceptors.response.use(
       };
 
       // 7.1 Advisor Dashboard
-      if (url.includes("/api/advisor/dashboard")) {
+      if (url.includes("/api/v1/advisors/dashboard")) {
         const teams = getAdvisorTeams();
         const evaluated = teams.filter(
           (t) => t.evaluation_status === "COMPLETED" || t.evaluation_status === "EVALUATED"
@@ -463,16 +466,16 @@ apiClient.interceptors.response.use(
 
       // 7.2 Advisor Teams List
       if (
-        url.endsWith("/api/advisor/teams") ||
-        url.includes("/api/advisor/teams?") ||
-        url.endsWith("/api/advisor/teams/")
+        url.endsWith("/api/v1/advisors/teams") ||
+        url.includes("/api/v1/advisors/teams?") ||
+        url.endsWith("/api/v1/advisors/teams/")
       ) {
         const teams = getAdvisorTeams();
         return Promise.resolve({ data: teams } as any);
       }
 
       // 7.3 Save Team Evaluation (POST)
-      const evalPostMatch = url.match(/\/api\/advisor\/teams\/([^/?#]+)\/evaluation/);
+      const evalPostMatch = url.match(/\/api\/v1\/advisors\/teams\/([^/?#]+)\/evaluation/);
       if (method === "POST" && evalPostMatch) {
         const teamId = evalPostMatch[1];
         const body: TeamEvaluationRequest =
@@ -549,7 +552,7 @@ apiClient.interceptors.response.use(
       }
 
       // 7.4 Get Team Evaluation (GET)
-      const evalGetMatch = url.match(/\/api\/advisor\/teams\/([^/?#]+)\/evaluation/);
+      const evalGetMatch = url.match(/\/api\/v1\/advisors\/teams\/([^/?#]+)\/evaluation/);
       if (method === "GET" && evalGetMatch) {
         const teamId = evalGetMatch[1];
         if (typeof window !== "undefined") {
@@ -587,7 +590,7 @@ apiClient.interceptors.response.use(
       }
 
       // 7.5 Get Team Submission Details
-      const teamSubMatch = url.match(/\/api\/advisor\/teams\/([^/?#]+)\/submission/);
+      const teamSubMatch = url.match(/\/api\/v1\/advisors\/teams\/([^/?#]+)\/submission/);
       if (teamSubMatch) {
         const teamId = teamSubMatch[1];
         const teams = getAdvisorTeams();
@@ -599,7 +602,7 @@ apiClient.interceptors.response.use(
       }
 
       // 7.6 Get Team Project Details
-      const teamProjMatch = url.match(/\/api\/advisor\/teams\/([^/?#]+)\/project/);
+      const teamProjMatch = url.match(/\/api\/v1\/advisors\/teams\/([^/?#]+)\/project/);
       if (teamProjMatch) {
         const teamId = teamProjMatch[1];
         const teams = getAdvisorTeams();
@@ -611,7 +614,7 @@ apiClient.interceptors.response.use(
       }
 
       // 7.7 Get Single Team
-      const teamDetailMatch = url.match(/\/api\/advisor\/teams\/([^/?#]+)/);
+      const teamDetailMatch = url.match(/\/api\/v1\/advisors\/teams\/([^/?#]+)/);
       if (
         teamDetailMatch &&
         !url.includes("/evaluation") &&
@@ -626,7 +629,7 @@ apiClient.interceptors.response.use(
       }
 
       // 7.8 Get Single Student
-      const studentDetailMatch = url.match(/\/api\/advisor\/students\/([^/?#]+)/);
+      const studentDetailMatch = url.match(/\/api\/v1\/advisors\/students\/([^/?#]+)/);
       if (studentDetailMatch) {
         const studentId = studentDetailMatch[1];
         const student = mockAdvisorStudents.find(
@@ -637,17 +640,17 @@ apiClient.interceptors.response.use(
       }
 
       // 7.9 Get Students Roster
-      if (url.includes("/api/advisor/students")) {
+      if (url.includes("/api/v1/advisors/students")) {
         return Promise.resolve({ data: mockAdvisorStudents } as any);
       }
 
       // 7.10 Get Evaluation Records / Sessions
-      if (url.includes("/api/advisor/records") || url.includes("/api/advisor/sessions")) {
+      if (url.includes("/api/v1/advisors/records") || url.includes("/api/v1/advisors/sessions")) {
         return Promise.resolve({ data: mockEvaluationSessions } as any);
       }
 
       // 7.11 Advisor Profile
-      if (url.includes("/api/advisor/profile")) {
+      if (url.includes("/api/v1/advisors/profile")) {
         if (method === "PUT") {
           const body =
             typeof error.config.data === "string"

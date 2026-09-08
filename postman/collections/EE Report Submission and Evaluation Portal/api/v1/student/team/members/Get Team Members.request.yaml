@@ -1,0 +1,13 @@
+$kind: http-request
+description: Get list of team members in the authenticated student's team.
+url: "{{baseUrl}}/api/v1/student/team/members"
+method: GET
+headers:
+  Accept: application/json
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+settings: {}
+examples: ./.resources/Get Team Members.resources/examples
+order: 1000

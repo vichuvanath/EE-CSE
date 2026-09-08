@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/students/:student_id/submissions"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  student_id: string
+settings: {}
+examples: ./.resources/Student submissions.resources/examples
+order: 1000

@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/classes"
+method: GET
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/View assigned classes.resources/examples
+order: 2000

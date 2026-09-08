@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/deadlines/:deadline_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  deadline_id: string
+settings: {}
+examples: ./.resources/Delete deadline.resources/examples
+order: 5000

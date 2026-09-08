@@ -15,6 +15,7 @@ from app.routes.student_profile import router as student_profile_router
 from app.routes.student_submissions import router as student_submissions_router
 from app.routes.student_team import router as student_team_router
 from app.routes.test_rbac import router as test_rbac_router
+from app.routers import advisors, api_v1_admin
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -76,6 +77,8 @@ app.include_router(student_evaluations_router, prefix="/api/v1")
 app.include_router(student_announcements_router, prefix="/api/v1")
 app.include_router(student_dashboard_router, prefix="/api/v1")
 app.include_router(test_rbac_router, prefix="/api/v1")
+app.include_router(advisors.router)
+app.include_router(api_v1_admin.router)
 
 
 @app.get("/")

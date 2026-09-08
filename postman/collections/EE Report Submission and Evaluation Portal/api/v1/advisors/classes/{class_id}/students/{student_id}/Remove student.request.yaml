@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/advisors/classes/:class_id/students/:student_id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  class_id: string
+  student_id: string
+settings: {}
+examples: ./.resources/Remove student.resources/examples
+order: 1000

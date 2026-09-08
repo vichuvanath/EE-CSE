@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/v1/student/files/:file_id"
+  method: GET
+  headers:
+    - key: Accept
+      value: application/json
+    - key: Authorization
+      value: Bearer <token>
+      description: "Added as a part of security scheme: bearer"
+  pathVariables:
+    file_id: string
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "string",
+        "submission_id": "string",
+        "file_name": "string",
+        "file_size": 8955,
+        "mime_type": "string",
+        "storage_bucket": "string",
+        "created_at": "1994-12-12T07:00:12.768Z",
+        "download_url": "string"
+      }
+order: 1000

@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/admin/rubrics"
+method: POST
+headers:
+  Accept: application/json
+settings: {}
+examples: ./.resources/Create rubric.resources/examples
+order: 3000
