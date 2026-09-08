@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* SIET-LMS Reference Theme Palette */
+    --primary-green: #034419;
+    --dark-green: #023312;
+    --medium-green: #16a34a;
+    --medium-green-hover: #15803d;
+    --light-mint: #e8f8f0;
+    --mint-surface: #f4faf6;
+    --accent-yellow: #facc15;
+    --accent-yellow-hover: #eab308;
+
+    --primary: #034419;
+    --primary-hover: #023312;
+    --primary-light: #e8f8f0;
+    --primary-container: #dcfce7;
+    --on-primary: #ffffff;
+    --on-primary-container: #034419;
+
+    --secondary: #16a34a;
+    --secondary-hover: #15803d;
+    --secondary-light: #f0fdf4;
+    --secondary-container: #bbf7d0;
+
+    --tertiary: #b45309;
+    --warning: #d97706;
+    --warning-light: #fef3c7;
+
+    --error: #ba1a1a;
+    --error-light: #fee2e2;
+
+    --background: #f4faf6;
+    --surface: #ffffff;
+    --surface-low: #f8fdfa;
+    --surface-container: #e8f8f0;
+    --surface-container-high: #d1fae5;
+
+    --border: #d1fae5;
+    --border-strong: #86efac;
+    --border-green: #16a34a;
+
+    --text-primary: #062c14;
+    --text-secondary: #164e2e;
+    --text-muted: #4b725a;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-weight: 400;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* Global Typography System (IBM Plex Sans) */
+  button, input, select, textarea, optgroup {
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Navigation & Labels */
+  nav, [data-row], .sidebar-row {
+    font-weight: 500;
+  }
+  label {
+    font-weight: 500;
+  }
+
+  /* Map any legacy font classes directly to IBM Plex Sans */
+  [class*="font-['Plus_Jakarta_Sans'"],
+  [class*="font-['Inter'"],
+  .font-sans {
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  }
+
+  /* Institutional Inputs with Green Border */
+  input[type="text"]:not([class*="bg-transparent"]),
+  input[type="email"]:not([class*="bg-transparent"]),
+  input[type="password"]:not([class*="bg-transparent"]),
+  input[type="number"]:not([class*="bg-transparent"]),
+  select,
+  textarea {
+    border-color: #86efac;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  input[type="text"]:not([class*="bg-transparent"]):focus,
+  input[type="email"]:not([class*="bg-transparent"]):focus,
+  input[type="password"]:not([class*="bg-transparent"]):focus,
+  input[type="number"]:not([class*="bg-transparent"]):focus,
+  select:focus,
+  textarea:focus {
+    border-color: #16a34a !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15) !important;
+  }
+
+  /* Anti-Slop Enterprise System: Restrained Radii & Crisp Hairlines */
+  .rounded-2xl {
+    border-radius: 0.5rem !important; /* 8px restrained radius instead of 16px bulbous AI-slop */
+  }
+  .rounded-3xl {
+    border-radius: 0.75rem !important; /* 12px restrained radius instead of 24px */
+  }
+
+  /* Eliminate AI-slop fuzzy drop shadows in favor of crisp hairline borders */
+  .shadow-2xs,
+  .shadow-xs,
+  .shadow-sm,
+  .shadow-md:not([role="dialog"]):not([class*="modal"]):not([class*="dropdown"]),
+  .shadow-lg:not([role="dialog"]):not([class*="modal"]):not([class*="dropdown"]) {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #a7f3d0;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6ee7b7;
+}
+
+/* SIET Theme Utility Classes */
+.bg-siet-dark-green {
+  background-color: #034419;
+}
+.bg-siet-medium-green {
+  background-color: #16a34a;
+}
+.bg-siet-mint {
+  background-color: #e8f8f0;
+}
+.bg-siet-surface {
+  background-color: #f4faf6;
+}
+.bg-siet-yellow {
+  background-color: #facc15;
+}
+.text-siet-dark-green {
+  color: #034419;
+}
+.text-siet-yellow {
+  color: #facc15;
+}
+.border-siet-green {
+  border-color: #16a34a;
+}
+.border-siet-mint {
+  border-color: #d1fae5;
+}
+
+/* Legacy utility aliases */
+.bg-primary-emerald {
+  background-color: #034419;
+}
+.text-primary-emerald {
+  color: #034419;
+}
+.border-primary-emerald {
+  border-color: #16a34a;
+}
+.hover\:bg-primary-emerald-hover:hover {
+  background-color: #023312;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * SIDEBAR MOTION & COLLAPSE SYSTEM (Reference Design)
+ * ───────────────────────────────────────────────────────── */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 180ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* Text and label fading during collapse */
+.sidebar-copy {
+  transition: opacity var(--sidebar-copy-duration, 180ms) var(--sidebar-easing, cubic-bezier(0.16, 1, 0.3, 1)),
+              transform var(--sidebar-copy-duration, 180ms) var(--sidebar-easing, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-sidebar-collapsed="true"] .sidebar-copy {
+  opacity: 0 !important;
+  transform: translateX(calc(-1 * var(--sidebar-copy-offset, 8px))) !important;
+  pointer-events: none !important;
+}
+
+/* Controls visibility during collapsed / expanded */
+[data-sidebar-collapsed="true"] .sidebar-collapse-control {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+[data-sidebar-collapsed="false"] .sidebar-expand-control {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Subtle hairline shadow */
+.shadow-hairline {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-overlay {
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.16), 0 4px 12px -2px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
