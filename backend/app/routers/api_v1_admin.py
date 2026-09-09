@@ -82,7 +82,75 @@ def get_admin_advisor_performance(advisor_id: str): pass
 def get_admin_teams(): pass
 
 @router.get("/teams/{team_id}", summary="Team details")
-def get_admin_team_details(team_id: str): pass
+def get_admin_team_details(team_id: str):
+    from app.core.database import SessionLocal
+    from app.models.academic import Team, TeamMember, Project
+    from app.models.user import User
+    from app.models.submission import Submission
+    db = SessionLocal()
+    try:
+        team = db.query(Team).filter(Team.id == team_id).first()
+        if not team:
+            return {"error": "Team not found"}
+        
+        # Get team members
+        members = db.query(TeamMember).filter(TeamMember.team_id == team_id).all()
+        student_ids = [str(m.student_id) for m in members]
+        users = db.query(User).filter(User.id.in_(student_ids)).all() if student_ids else []
+        users_by_id = {str(u.id): u for u in users}
+        
+        member_list = []
+        for idx, m in enumerate(members):
+            u = users_by_id.get(str(m.student_id))
+            member_list.append({
+                "id": str(m.student_id),
+                "full_name": u.full_name if u else "",
+                "roll_number": getattr(u, "roll_number", None) if u else None,
+                "email": u.email if u else "",
+            })
+        
+        # Get project with all details
+        project = db.query(Project).filter(Project.team_id == team_id).first()
+        project_data = None
+        if project:
+            project_data = {
+                "id": project.id,
+                "team_id": project.team_id,
+                "title": project.title,
+                "domain": getattr(project, "domain", "") or "",
+                "problem_statement": getattr(project, "problem_statement", "") or "",
+                "description": project.description or "",
+                "proposed_solution": getattr(project, "proposed_solution", "") or "",
+                "technologies_used": getattr(project, "technologies_used", "") or "",
+                "github_url": getattr(project, "github_url", "") or "",
+                "live_demo_url": getattr(project, "live_demo_url", "") or "",
+                "status": project.status,
+                "created_at": project.created_at.isoformat() if project.created_at else None,
+                "updated_at": project.updated_at.isoformat() if project.updated_at else None,
+            }
+        
+        # Get latest submission
+        submission = db.query(Submission).filter(Submission.team_id == team_id).order_by(Submission.created_at.desc()).first()
+        submission_data = None
+        if submission:
+            submission_data = {
+                "id": submission.id,
+                "title": submission.title,
+                "status": submission.status,
+                "submission_type": submission.submission_type,
+                "created_at": submission.created_at.isoformat() if submission.created_at else None,
+            }
+        
+        return {
+            "id": str(team.id),
+            "name": team.name,
+            "members": member_list,
+            "project": project_data,
+            "submission": submission_data,
+            "submission_status": "SUBMITTED" if submission and submission.status == "submitted" else "DRAFT",
+        }
+    finally:
+        db.close()
 
 @router.patch("/teams/{team_id}", summary="Update team")
 def update_admin_team(team_id: str): pass
@@ -95,6 +163,34 @@ def get_admin_team_history(team_id: str): pass
 
 @router.get("/teams/export", summary="Export teams")
 def export_admin_teams(): pass
+
+
+@router.get("/teams/{team_id}/project", summary="Get team project details")
+def get_admin_team_project(team_id: str):
+    from app.core.database import SessionLocal
+    from app.models.academic import Project
+    db = SessionLocal()
+    try:
+        project = db.query(Project).filter(Project.team_id == team_id).first()
+        if not project:
+            return {"error": "Project not found"}
+        return {
+            "id": project.id,
+            "team_id": project.team_id,
+            "title": project.title,
+            "domain": getattr(project, "domain", "") or "",
+            "problem_statement": getattr(project, "problem_statement", "") or "",
+            "description": project.description or "",
+            "proposed_solution": getattr(project, "proposed_solution", "") or "",
+            "technologies_used": getattr(project, "technologies_used", "") or "",
+            "github_url": getattr(project, "github_url", "") or "",
+            "live_demo_url": getattr(project, "live_demo_url", "") or "",
+            "status": project.status,
+            "created_at": project.created_at.isoformat() if project.created_at else None,
+            "updated_at": project.updated_at.isoformat() if project.updated_at else None,
+        }
+    finally:
+        db.close()
 
 
 # 11. Admin Classes

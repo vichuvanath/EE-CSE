@@ -9,17 +9,28 @@ from app.repositories.advisor_evaluation_repository import (
     get_student_evaluation_by_id,
     upsert_student_evaluation,
 )
-from app.repositories.team_repository import get_team_by_id, get_team_members
-from app.repositories.user_repository import get_user_by_id
 from app.repositories.assignment_repository import check_assignment
 
 VALID_STATUSES = ["NOT_STARTED", "IN_PROGRESS", "EVALUATED", "SUBMITTED", "LOCKED"]
 
 
+def _team_exists(team_id: str) -> bool:
+    """Check team existence via SQLAlchemy (same data source as advisor_repository)."""
+    try:
+        from app.core.database import SessionLocal
+        from app.models.academic import Team
+        db = SessionLocal()
+        try:
+            return db.query(Team).filter(Team.id == team_id).first() is not None
+        finally:
+            db.close()
+    except Exception:
+        return False
+
+
 def get_team_evaluation_service(advisor_id: str, team_id: str) -> Dict[str, Any]:
     # 1. Team existence
-    team = get_team_by_id(team_id)
-    if not team:
+    if not _team_exists(team_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Team '{team_id}' not found",
@@ -58,8 +69,7 @@ def save_team_evaluation_service(
     status_val: Optional[str],
 ) -> Dict[str, Any]:
     # 1. Team existence
-    team = get_team_by_id(team_id)
-    if not team:
+    if not _team_exists(team_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Team '{team_id}' not found",
@@ -99,8 +109,7 @@ def save_team_evaluation_service(
 
 
 def get_student_evaluations_for_team_service(advisor_id: str, team_id: str) -> List[Dict[str, Any]]:
-    team = get_team_by_id(team_id)
-    if not team:
+    if not _team_exists(team_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Team '{team_id}' not found",
@@ -152,8 +161,7 @@ def save_student_evaluation_service(
     remarks: Optional[str],
 ) -> Dict[str, Any]:
     # 1. Check team existence & advisor authorization
-    team = get_team_by_id(team_id)
-    if not team:
+    if not _team_exists(team_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Team '{team_id}' not found",
@@ -166,19 +174,35 @@ def save_student_evaluation_service(
         )
 
     # 2. Check student existence & membership in team
-    user = get_user_by_id(student_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Student '{student_id}' not found",
-        )
+    try:
+        from app.core.database import SessionLocal
+        from app.models.academic import User, TeamMember
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == student_id).first()
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Student '{student_id}' not found",
+                )
 
-    members = get_team_members(team_id)
-    member_student_ids = [str(m.get("student_id")) for m in members]
-    if str(student_id) not in member_student_ids:
+            member = db.query(TeamMember).filter(
+                TeamMember.team_id == team_id,
+                TeamMember.student_id == student_id,
+            ).first()
+            if not member:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Student '{student_id}' does not belong to Team '{team_id}'",
+                )
+        finally:
+            db.close()
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Student '{student_id}' does not belong to Team '{team_id}'",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to verify student membership",
         )
 
     # 3. Check existing lock status

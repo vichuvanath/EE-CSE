@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Award, Users, Clock, ArrowRight, FileCheck2, ChevronRight, UserCheck, BookOpen, GraduationCap } from "lucide-react";
+import { Award, Users, Clock, ArrowRight, FileCheck2, ChevronRight, UserCheck, BookOpen, GraduationCap, Eye } from "lucide-react";
 import { useAdvisorTeams } from "@/hooks/use-advisor";
 import { TeamGuideBadge } from "@/components/advisor/TeamGuideBadge";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
@@ -79,6 +79,13 @@ export function AdvisorEvaluationsPage() {
         const teamId = team.id || team.team_id || "team-001";
         return (
           <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+            <Link
+              to={`/advisor/teams/${teamId}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>View</span>
+            </Link>
             <Link
               to={`/advisor/teams/${teamId}/evaluation`}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#034419] hover:bg-[#023112] text-white text-xs font-semibold transition"

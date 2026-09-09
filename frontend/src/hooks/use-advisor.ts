@@ -26,7 +26,10 @@ export function useAdvisorDashboard() {
 export function useAdvisorTeams() {
   return useQuery({
     queryKey: advisorQueryKeys.teams,
-    queryFn: () => advisorService.getTeams(),
+    queryFn: async () => {
+      const result = await advisorService.getTeams();
+      return Array.isArray(result) ? result : [];
+    },
   });
 }
 

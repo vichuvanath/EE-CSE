@@ -32,7 +32,7 @@ interface SubmissionItem {
   abstract: string;
   description: string;
   github_url?: string;
-  demo_url?: string;
+  live_demo_url?: string;
   files: { name: string; size: string; type: string }[];
   remarks: string;
 }
@@ -53,6 +53,12 @@ export function HodTeamDetailPage() {
     name: "Team NeuroSync (ECE-A)",
     project_title: "Neuromorphic Edge Processor for EEG Spike Detection",
     domain: "Embedded Systems & Artificial Intelligence",
+    problem_statement: "Existing EEG spike detection systems rely on cloud-based processing, introducing latency that is unacceptable for real-time clinical monitoring. There is a need for an edge-deployable neuromorphic processor that can perform spike detection locally with minimal power consumption.",
+    description: "This project develops a neuromorphic edge processor architecture optimized for real-time EEG spike detection. The system leverages spiking neural networks (SNNs) implemented on FPGA hardware to achieve low-latency, low-power inference directly at the sensor node, eliminating cloud dependency.",
+    proposed_solution: "Design a custom neuromorphic computing architecture using Leaky Integrate-and-Fire (LIF) neuron models mapped onto Xilinx FPGA fabric. The processor will implement a multi-layer SNN trained with surrogate gradient descent, achieving sub-10ms detection latency while consuming under 500mW of power.",
+    technologies_used: "Python, TensorFlow, PyTorch, Verilog HDL, Xilinx Vivado, Spike-Flow Framework, EEG Signal Processing (MNE-Python), FPGA Prototyping (Zynq-7020)",
+    github_url: "https://github.com/neurosync/eeg-spike-detection",
+    live_demo_url: "https://neurosync.siet.ac.in/demo-v1",
     advisor: "Dr. A. Nandhini, M.E., Ph.D. (Professor)",
     guide: {
       name: "Dr. V. Rajesh, M.E., Ph.D.",
@@ -132,7 +138,7 @@ export function HodTeamDetailPage() {
       description:
         "Includes leaky integrate-and-fire (LIF) neuron mathematical models, synapse array routing, and ADC interface circuit simulation in Cadence Virtuoso.",
       github_url: "https://github.com/siet-ece/neurosync-core",
-      demo_url: "https://neurosync.siet.ac.in/architecture",
+      live_demo_url: "https://neurosync.siet.ac.in/architecture",
       files: [
         { name: "System_Architecture_Schematics.pdf", size: "5.1 MB", type: "PDF" },
         { name: "Verilog_RTL_Modules.zip", size: "14.2 MB", type: "ZIP" },
@@ -154,7 +160,7 @@ export function HodTeamDetailPage() {
       description:
         "Real-time test vectors derived from the PhysioNet EEG dataset streamed via UART at 115200 baud with 96.4% spike detection accuracy.",
       github_url: "https://github.com/siet-ece/neurosync-core",
-      demo_url: "https://neurosync.siet.ac.in/demo-v1",
+      live_demo_url: "https://neurosync.siet.ac.in/demo-v1",
       files: [
         { name: "FPGA_Synthesis_Report.pdf", size: "3.8 MB", type: "PDF" },
         { name: "PhysioNet_Validation_Logs.xlsx", size: "1.2 MB", type: "XLSX" },
@@ -234,6 +240,137 @@ export function HodTeamDetailPage() {
                 {team.advisor}
               </span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2b. Project Details & Technical Scope */}
+      <div className="bg-white p-5 rounded-lg border border-slate-200/90 shadow-none space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[#034419]" />
+            <h2 className="text-sm font-bold text-slate-900 font-['IBM_Plex_Sans',sans-serif]">
+              Project Details & Technical Scope
+            </h2>
+          </div>
+          <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-semibold">
+            Submitted & Locked
+          </span>
+        </div>
+
+        {/* Section 1: Core Identification & Scope */}
+        <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3">
+          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider text-emerald-700">
+            Core Identification & Scope
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="md:col-span-2">
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
+                Official Project Title
+              </label>
+              <p className="text-sm font-medium text-slate-900 px-3 py-2 bg-white rounded-lg border border-slate-200">
+                {team.project_title}
+              </p>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
+                Academic Domain
+              </label>
+              <p className="text-sm font-medium text-slate-900 px-3 py-2 bg-white rounded-lg border border-slate-200">
+                {team.domain}
+              </p>
+            </div>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
+              Problem Statement
+            </label>
+            <p className="text-sm text-slate-700 px-3 py-2 bg-white rounded-lg border border-slate-200 whitespace-pre-wrap">
+              {team.problem_statement}
+            </p>
+          </div>
+        </div>
+
+        {/* Section 2: Technical Abstract & Proposed Solution */}
+        <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3">
+          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider text-emerald-700">
+            Technical Abstract & Proposed Solution
+          </h3>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
+              Project Overview / Abstract Description
+            </label>
+            <p className="text-sm text-slate-700 px-3 py-2 bg-white rounded-lg border border-slate-200 whitespace-pre-wrap">
+              {team.description}
+            </p>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
+              Proposed Solution & Innovation
+            </label>
+            <p className="text-sm text-slate-700 px-3 py-2 bg-white rounded-lg border border-slate-200 whitespace-pre-wrap">
+              {team.proposed_solution}
+            </p>
+          </div>
+        </div>
+
+        {/* Section 3: Technical Stack & Deliverable URLs */}
+        <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3">
+          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider text-emerald-700">
+            Technical Stack & Deliverable URLs
+          </h3>
+          <div>
+            <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
+              Technologies Used
+            </label>
+            <p className="text-sm font-mono text-slate-900 px-3 py-2 bg-white rounded-lg border border-slate-200">
+              {team.technologies_used}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
+                GitHub Repository URL
+              </label>
+              <p className="text-sm font-mono text-slate-900 px-3 py-2 bg-white rounded-lg border border-slate-200 break-all">
+                {team.github_url || "—"}
+              </p>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
+                Live Demo / Deployment URL
+              </label>
+              <p className="text-sm font-mono text-slate-900 px-3 py-2 bg-white rounded-lg border border-slate-200 break-all">
+                {team.live_demo_url || "—"}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            {team.github_url && (
+              <a
+                href={team.github_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition"
+              >
+                <GitBranch className="w-3.5 h-3.5" />
+                <span>GitHub Repository</span>
+              </a>
+            )}
+            {team.live_demo_url && (
+              <a
+                href={team.live_demo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-emerald-50 text-[#0F5132] hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold transition"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Live Deployment URL</span>
+              </a>
+            )}
+            {!team.github_url && !team.live_demo_url && (
+              <span className="text-xs text-slate-400 italic">No project links provided.</span>
+            )}
           </div>
         </div>
       </div>
@@ -620,9 +757,9 @@ export function HodTeamDetailPage() {
                   </a>
                 )}
 
-                {selectedSubmission.demo_url && (
+                {selectedSubmission.live_demo_url && (
                   <a
-                    href={selectedSubmission.demo_url}
+                    href={selectedSubmission.live_demo_url}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition"

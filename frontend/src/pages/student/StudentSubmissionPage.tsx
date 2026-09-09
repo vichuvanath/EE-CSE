@@ -70,35 +70,11 @@ export function StudentSubmissionPage() {
 
   const isAlreadySubmitted = mySubmission?.status === "SUBMITTED";
   const completedCount = checklist?.completed_count || 0;
-  const totalCount = checklist?.total_count || 6;
+  const totalCount = checklist?.total_count || 2;
   const canSubmit = completedCount === totalCount && !isAlreadySubmitted;
   const progressPercent = Math.round((completedCount / totalCount) * 100);
 
   const checklistItems = [
-    {
-      key: "abstract",
-      label: "Abstract Document (PDF)",
-      completed: checklist?.abstract?.completed || false,
-      link: "/student/files",
-    },
-    {
-      key: "report",
-      label: "Project Report Chapter Dossier (PDF)",
-      completed: checklist?.report?.completed || false,
-      link: "/student/files",
-    },
-    {
-      key: "ppt",
-      label: "Presentation Slide Deck (PPT/PPTX)",
-      completed: checklist?.ppt?.completed || false,
-      link: "/student/files",
-    },
-    {
-      key: "images",
-      label: "Project Architecture & Screenshots",
-      completed: checklist?.images?.completed || false,
-      link: "/student/files",
-    },
     {
       key: "github",
       label: "GitHub Repository VCS Link",
@@ -165,7 +141,7 @@ export function StudentSubmissionPage() {
                 Submission Completeness Checklist
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                All 6 requirements must be satisfied before the final submission button unlocks.
+                All 2 requirements must be satisfied before the final submission button unlocks.
               </p>
             </div>
             <div className="text-left sm:text-right">

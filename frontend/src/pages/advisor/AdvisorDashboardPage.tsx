@@ -16,7 +16,8 @@ import { TeamGuideBadge } from "@/components/advisor/TeamGuideBadge";
 
 export function AdvisorDashboardPage() {
   const { data: dashboard, isLoading: isDashboardLoading } = useAdvisorDashboard();
-  const { data: teams = [], isLoading: isTeamsLoading } = useAdvisorTeams();
+  const { data: teamsData, isLoading: isTeamsLoading } = useAdvisorTeams();
+  const teams = Array.isArray(teamsData) ? teamsData : [];
 
   if (isDashboardLoading || isTeamsLoading) {
     return (

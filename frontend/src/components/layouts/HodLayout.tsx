@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -113,6 +113,19 @@ export function HodLayout() {
 
   const { academicYear, notifications, setNotificationDrawerOpen } = useHodStore();
   const { logout, user } = useAuthStore();
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("siet_access_token") : null;
+    const userStr = typeof window !== "undefined" ? localStorage.getItem("siet_user") : null;
+    let parsed: any = null;
+    try {
+      if (userStr) parsed = JSON.parse(userStr);
+    } catch {}
+
+    if (!token || !parsed || (parsed.role !== "hod" && parsed.role !== "admin")) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 

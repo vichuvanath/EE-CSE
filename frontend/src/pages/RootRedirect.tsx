@@ -16,14 +16,16 @@ export function RootRedirect() {
 
     if (!isAuthenticated) {
       navigate("/login", { replace: true });
+    } else if (!role) {
+      navigate("/login", { replace: true });
+    } else if (role === "student") {
+      navigate("/student/team", { replace: true });
+    } else if (role === "hod" || role === "admin") {
+      navigate("/hod/dashboard", { replace: true });
+    } else if (role === "advisor") {
+      navigate("/advisor/dashboard", { replace: true });
     } else {
-      if (role === "student" || !role) {
-        navigate("/student/team", { replace: true });
-      } else if (role === "hod") {
-        navigate("/hod/dashboard", { replace: true });
-      } else {
-        navigate("/advisor/dashboard", { replace: true });
-      }
+      navigate("/login", { replace: true });
     }
   }, [isLoading, isAuthenticated, role, navigate]);
 

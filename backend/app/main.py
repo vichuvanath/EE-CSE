@@ -1,8 +1,10 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
+from seed_users import seed_mock_users
 from app.routes.auth import router as auth_router
 from app.routes.health import router as health_router
 from app.routes.student_announcements import router as student_announcements_router
@@ -12,10 +14,22 @@ from app.routes.student_evaluations import router as student_evaluations_router
 from app.routes.student_files import router as student_files_router
 from app.routes.student_notifications import router as student_notifications_router
 from app.routes.student_profile import router as student_profile_router
+from app.routes.student_project import router as student_project_router
 from app.routes.student_submissions import router as student_submissions_router
 from app.routes.student_team import router as student_team_router
 from app.routes.test_rbac import router as test_rbac_router
 from app.routers import advisors, api_v1_admin
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Auto-seed tables and development mock data on startup
+    try:
+        seed_mock_users()
+    except Exception as e:
+        print(f"[Lifespan Startup Error] Auto-seeding error: {e}")
+    yield
+
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -23,6 +37,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 
@@ -59,15 +74,17 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include API Routers
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(student_profile_router, prefix="/api/v1")
+app.include_router(student_project_router, prefix="/api/v1")
 app.include_router(student_team_router, prefix="/api/v1")
 app.include_router(student_deadlines_router, prefix="/api/v1")
 app.include_router(student_files_router, prefix="/api/v1")

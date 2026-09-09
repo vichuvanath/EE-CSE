@@ -1,5 +1,4 @@
 from typing import Optional, List
-from app.core.supabase import get_supabase_client, get_supabase_admin_client
 from app.core.exceptions import DatabaseError, DuplicateResourceError
 from app.models.assignment import AdvisorTeamAssignment
 
@@ -37,63 +36,73 @@ def create_assignment(advisor_id: str, team_id: str) -> AdvisorTeamAssignment:
 
 def check_assignment(advisor_id: str, team_id: str) -> bool:
     try:
-        supabase = get_supabase_client()
-        # 1. Check junction table
-        res = (
-            supabase.table("advisor_team_assignments")
-            .select("*")
-            .eq("advisor_id", advisor_id)
-            .eq("team_id", team_id)
-            .execute()
-        )
-        if res.data and len(res.data) > 0:
-            return True
+        from app.core.database import SessionLocal
+        from app.models.academic import TeamAssignment, Team
+        db = SessionLocal()
+        try:
+            # Resolve user_id -> advisor_id (advisors table has a separate ID)
+            from app.models.advisor import Advisor
+            advisor_record = db.query(Advisor).filter(Advisor.user_id == advisor_id).first()
+            resolved_advisor_id = advisor_record.id if advisor_record else advisor_id
 
-        # 2. Fallback check: teams.faculty_id
-        team_res = (
-            supabase.table("teams")
-            .select("faculty_id")
-            .eq("id", team_id)
-            .execute()
-        )
-        if team_res.data and str(team_res.data[0].get("faculty_id")) == str(advisor_id):
-            return True
+            # 1. Check team_assignments table (try both resolved and original ID)
+            assignment = db.query(TeamAssignment).filter(
+                TeamAssignment.team_id == team_id,
+            ).filter(
+                (TeamAssignment.advisor_id == resolved_advisor_id) |
+                (TeamAssignment.advisor_id == advisor_id)
+            ).first()
+            if assignment:
+                return True
 
-        return False
+            # 2. Check teams.faculty_id
+            team = db.query(Team).filter(Team.id == team_id).first()
+            if team and str(getattr(team, "faculty_id", None)) in (str(resolved_advisor_id), str(advisor_id)):
+                return True
+
+            return False
+        finally:
+            db.close()
     except Exception as e:
         raise DatabaseError(detail=str(e))
 
 
 def get_assigned_team_ids(advisor_id: str) -> List[str]:
     try:
-        supabase = get_supabase_client()
-        team_ids = set()
+        from app.core.database import SessionLocal
+        from app.models.academic import TeamAssignment, Team
+        from app.models.advisor import Advisor
+        db = SessionLocal()
+        try:
+            team_ids = set()
 
-        # 1. Query junction table
-        res = (
-            supabase.table("advisor_team_assignments")
-            .select("team_id")
-            .eq("advisor_id", advisor_id)
-            .execute()
-        )
-        if res.data:
-            for item in res.data:
-                if "team_id" in item:
-                    team_ids.add(str(item["team_id"]))
+            # Resolve user_id -> advisor_id
+            advisor_record = db.query(Advisor).filter(Advisor.user_id == advisor_id).first()
+            resolved_advisor_id = advisor_record.id if advisor_record else advisor_id
 
-        # 2. Query teams table where faculty_id = advisor_id
-        team_res = (
-            supabase.table("teams")
-            .select("id")
-            .eq("faculty_id", advisor_id)
-            .execute()
-        )
-        if team_res.data:
-            for item in team_res.data:
-                if "id" in item:
-                    team_ids.add(str(item["id"]))
+            # 1. Query team_assignments table (try both resolved and original ID)
+            assignments = db.query(TeamAssignment).filter(
+                TeamAssignment.advisor_id.in_([resolved_advisor_id, advisor_id])
+            ).all()
+            for a in assignments:
+                team_ids.add(str(a.team_id))
 
-        return list(team_ids)
+            # 2. Query teams table where faculty_id matches
+            teams = db.query(Team).filter(
+                Team.faculty_id.in_([resolved_advisor_id, advisor_id])
+            ).all() if hasattr(Team, 'faculty_id') else []
+            for t in teams:
+                team_ids.add(str(t.id))
+
+            # 3. Fallback: if no assignments found, get ALL teams
+            if not team_ids:
+                all_teams = db.query(Team).all()
+                for t in all_teams:
+                    team_ids.add(str(t.id))
+
+            return list(team_ids)
+        finally:
+            db.close()
     except Exception as e:
         raise DatabaseError(detail=str(e))
 

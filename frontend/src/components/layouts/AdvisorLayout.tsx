@@ -13,7 +13,6 @@ import {
 import { SietLogo } from "@/components/brand/siet-logo";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUiStore } from "@/stores/ui-store";
-import { mockAdvisorUser } from "@/lib/mock-fallback";
 
 import { SidebarNav, type SidebarNavGroup, type SidebarWorkspace } from "@/components/navigation/SidebarNav";
 import { AdvisorProfileDrawer } from "@/components/advisor/AdvisorProfileDrawer";
@@ -65,7 +64,7 @@ const advisorWorkspace: SidebarWorkspace = {
 
 export function AdvisorLayout() {
   const navigate = useNavigate();
-  const { user, initialize, logout, setAuth } = useAuthStore();
+  const { user, initialize, logout } = useAuthStore();
   const { mobileDrawerOpen, setMobileDrawerOpen } = useUiStore();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -83,9 +82,9 @@ export function AdvisorLayout() {
     } catch {}
 
     if (!token || !parsed || parsed.role !== "advisor") {
-      setAuth(mockAdvisorUser.user, mockAdvisorUser.access_token);
+      navigate("/login", { replace: true });
     }
-  }, [setAuth]);
+  }, [navigate]);
 
   const handleLogout = () => {
     logout();

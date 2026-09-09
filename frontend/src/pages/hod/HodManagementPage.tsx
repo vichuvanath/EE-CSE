@@ -1321,38 +1321,73 @@ export const HodManagementPage: React.FC = () => {
                                   </div>
 
                                   {/* Project details */}
-                                  <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-sm space-y-2">
+                                  <div className="bg-white p-3.5 rounded-lg border border-slate-200 shadow-sm space-y-2.5">
                                     <div className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center space-x-1.5 pb-1 border-b border-slate-100">
                                       <FileText className="w-3.5 h-3.5 text-emerald-800" />
-                                      <span>Project Description & Repositories</span>
+                                      <span>Project Details & Technical Scope</span>
                                     </div>
-                                    <p className="text-xs text-slate-600 leading-relaxed">
-                                      {team.project.description}
-                                    </p>
-                                    <div className="pt-2 flex items-center space-x-3 text-xs">
-                                      {team.project.github_url && (
-                                        <a
-                                          href={team.project.github_url}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="text-emerald-800 hover:text-emerald-950 font-semibold flex items-center space-x-1"
-                                        >
-                                          <Code className="w-3.5 h-3.5" />
-                                          <span>Repository</span>
-                                          <ExternalLink className="w-3 h-3" />
-                                        </a>
-                                      )}
-                                      {team.project.demo_url && (
-                                        <a
-                                          href={team.project.demo_url}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          className="text-emerald-800 hover:text-emerald-950 font-semibold flex items-center space-x-1"
-                                        >
-                                          <span>Live Demo</span>
-                                          <ExternalLink className="w-3 h-3" />
-                                        </a>
-                                      )}
+
+                                    {/* Core Identification */}
+                                    <div className="space-y-1.5">
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Title</span>
+                                          <p className="text-xs font-semibold text-slate-800">{team.project.title}</p>
+                                        </div>
+                                        <div>
+                                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Domain</span>
+                                          <p className="text-xs font-semibold text-slate-800">{team.project.domain}</p>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Problem Statement</span>
+                                        <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{team.project.problem_statement}</p>
+                                      </div>
+                                    </div>
+
+                                    {/* Description & Solution */}
+                                    <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                                      <div>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Description</span>
+                                        <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{team.project.description}</p>
+                                      </div>
+                                      <div>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Proposed Solution</span>
+                                        <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{team.project.proposed_solution}</p>
+                                      </div>
+                                    </div>
+
+                                    {/* Tech Stack & Links */}
+                                    <div className="pt-1.5 border-t border-slate-100 space-y-1.5">
+                                      <div>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Technologies</span>
+                                        <p className="text-xs font-mono text-slate-800">{team.project.technologies_used}</p>
+                                      </div>
+                                      <div className="flex items-center space-x-3 text-xs">
+                                        {team.project.github_url && (
+                                          <a
+                                            href={team.project.github_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-emerald-800 hover:text-emerald-950 font-semibold flex items-center space-x-1"
+                                          >
+                                            <Code className="w-3.5 h-3.5" />
+                                            <span>Repository</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                        )}
+                                        {team.project.live_demo_url && (
+                                          <a
+                                            href={team.project.live_demo_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-emerald-800 hover:text-emerald-950 font-semibold flex items-center space-x-1"
+                                          >
+                                            <span>Live Demo</span>
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>

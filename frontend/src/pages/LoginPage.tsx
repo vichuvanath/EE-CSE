@@ -8,13 +8,9 @@ import {
   ArrowRight,
   AlertCircle,
   Loader2,
-  Zap,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { getErrorMessage } from "@/lib/api-client";
-import { useAuthStore } from "@/stores/auth-store";
-import { mockStudentUser, mockAdvisorUser, mockHodUser } from "@/lib/mock-fallback";
-import { useNavigate } from "react-router-dom";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").trim(),
@@ -24,11 +20,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const { setAuth } = useAuthStore();
   const { login, isLoggingIn } = useAuth();
 
   const form = useForm<LoginFormValues>({
@@ -45,19 +39,6 @@ export function LoginPage() {
       await login(data);
     } catch (err) {
       setLoginError(getErrorMessage(err));
-    }
-  };
-
-  const handleInstantDemoLogin = (role: "student" | "advisor" | "hod") => {
-    if (role === "student") {
-      setAuth(mockStudentUser.user, mockStudentUser.access_token);
-      navigate("/student/team");
-    } else if (role === "hod") {
-      setAuth(mockHodUser.user, mockHodUser.access_token);
-      navigate("/hod/dashboard");
-    } else {
-      setAuth(mockAdvisorUser.user, mockAdvisorUser.access_token);
-      navigate("/advisor/dashboard");
     }
   };
 
@@ -103,49 +84,6 @@ export function LoginPage() {
               <span>Resources and tools aligned with competitive programming and industry-relevant software development practices.</span>
             </li>
           </ul>
-        </div>
-
-        {/* Instant Demo Access */}
-        <div className="mt-8 pt-6 border-t border-emerald-800/80">
-          <div className="flex items-start gap-3 bg-[#023312] p-4 rounded-xl border border-emerald-700/60">
-            <div className="p-2 rounded-lg bg-[#16A34A] text-white shrink-0">
-              <Zap className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                Instant Demo Access
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#FACC15] text-[#023814] font-bold font-mono">
-                  1-Click
-                </span>
-              </div>
-              <p className="text-[11px] text-emerald-200/80 mt-0.5">
-                Quick bypass for evaluators and presentation demos:
-              </p>
-              <div className="mt-2.5 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleInstantDemoLogin("student")}
-                  className="px-2.5 py-1 rounded-md bg-[#16A34A] hover:bg-[#15803D] text-white text-xs font-semibold transition cursor-pointer shadow-2xs"
-                >
-                  Demo Student
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleInstantDemoLogin("advisor")}
-                  className="px-2.5 py-1 rounded-md bg-[#034419] hover:bg-[#064E1F] text-emerald-100 text-xs font-medium border border-emerald-600 transition cursor-pointer"
-                >
-                  Demo Advisor
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleInstantDemoLogin("hod")}
-                  className="px-2.5 py-1 rounded-md bg-[#034419] hover:bg-[#064E1F] text-emerald-100 text-xs font-medium border border-emerald-600 transition cursor-pointer"
-                >
-                  Demo HOD
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

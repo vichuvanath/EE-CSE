@@ -21,7 +21,6 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useAdvisorRecords } from "@/hooks/use-advisor";
-import { mockEvaluationSessions } from "@/lib/mock-fallback";
 import {
   exportSessionRecordPDF,
   exportSingleTeamRecordPDF,
@@ -31,9 +30,7 @@ import { AdvisorEvaluationSession, AdvisorTeamSummary } from "@/types";
 export function AdvisorEvaluationRecordsPage() {
   const { data: apiSessions = [], isLoading } = useAdvisorRecords();
 
-  // Use enriched sessions fallback if API is loading or has fewer than 3 sessions
-  const sessions: AdvisorEvaluationSession[] =
-    apiSessions.length >= 3 ? apiSessions : mockEvaluationSessions;
+  const sessions: AdvisorEvaluationSession[] = apiSessions;
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");

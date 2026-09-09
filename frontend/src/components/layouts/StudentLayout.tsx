@@ -3,15 +3,12 @@ import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import {
   Users,
   FolderGit2,
-  FileUp,
-  Send,
-  History,
   Menu,
   X,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUiStore } from "@/stores/ui-store";
-import { mockStudentUser } from "@/lib/mock-fallback";
+
 import { SidebarNav, type SidebarNavGroup, type SidebarWorkspace } from "@/components/navigation/SidebarNav";
 import { StudentProfileDrawer } from "@/components/student/StudentProfileDrawer";
 
@@ -20,9 +17,6 @@ const studentNavGroups: SidebarNavGroup[] = [
     items: [
       { key: "team", label: "My Team", href: "/student/team", icon: Users },
       { key: "project", label: "Project Details", href: "/student/project", icon: FolderGit2 },
-      { key: "files", label: "Project Files", href: "/student/files", icon: FileUp },
-      { key: "submission", label: "Submission", href: "/student/submission", icon: Send },
-      { key: "my-submissions", label: "My Submissions", href: "/student/my-submissions", icon: History },
     ],
   },
 ];
@@ -38,18 +32,13 @@ const studentWorkspace: SidebarWorkspace = {
 const getPageTitle = (pathname: string) => {
   if (pathname.includes("/student/team")) return "My Team";
   if (pathname.includes("/student/project")) return "Project Details";
-  if (pathname.includes("/student/files")) return "Project Files";
-  if (pathname.includes("/student/submission")) return "Final Submission";
-  if (pathname.includes("/student/my-submissions") || pathname.includes("/student/my-submission")) {
-    return "My Submissions";
-  }
   return "Student Workspace";
 };
 
 export function StudentLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, initialize, logout, setAuth } = useAuthStore();
+  const { user, initialize, logout } = useAuthStore();
   const { mobileDrawerOpen, setMobileDrawerOpen } = useUiStore();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -69,9 +58,9 @@ export function StudentLayout() {
     } catch {}
 
     if (!token || !parsed || parsed.role !== "student") {
-      setAuth(mockStudentUser.user, mockStudentUser.access_token);
+      navigate("/login", { replace: true });
     }
-  }, [setAuth]);
+  }, [navigate]);
 
   const handleLogout = () => {
     logout();
