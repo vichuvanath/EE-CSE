@@ -22,8 +22,12 @@ import {
 } from "lucide-react";
 import {
   useAdvisorTeam,
+  useAdvisorTeamProject,
   useAdvisorTeamEvaluation,
+  useAdvisorTeamSubmission,
+  useAdvisorTeamSubmissions,
   useSaveTeamEvaluation,
+  useEvaluateSubmission,
 } from "@/hooks/use-advisor";
 import { TeamGuideBadge } from "@/components/advisor/TeamGuideBadge";
 import { toast } from "sonner";
@@ -33,10 +37,15 @@ export function AdvisorTeamSubmissionReviewPage() {
   const { teamId } = useParams<{ teamId: string }>();
 
   const { data: team, isLoading: isTeamLoading } = useAdvisorTeam(teamId || "");
+  const { data: teamProject, isLoading: isProjectLoading } = useAdvisorTeamProject(teamId || "");
+  const { data: submission, isLoading: isSubmissionLoading } = useAdvisorTeamSubmission(teamId || "");
+  const { data: teamSubmissions = [] } = useAdvisorTeamSubmissions(teamId || "");
   const { data: existingEval, isLoading: isEvalLoading } = useAdvisorTeamEvaluation(teamId || "");
-  const saveEvaluationMutation = useSaveTeamEvaluation();
 
-  const [submissionFiles, setSubmissionFiles] = useState<any[]>([]);
+  const saveEvaluationMutation = useSaveTeamEvaluation();
+  const evaluateSubmissionMutation = useEvaluateSubmission();
+
+  const [fallbackFiles, setFallbackFiles] = useState<any[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
 
   // Rubric Scores State (5 criteria, 0 to 20 each, step 0.5)
@@ -58,30 +67,55 @@ export function AdvisorTeamSubmissionReviewPage() {
 
   const [isEditing, setIsEditing] = useState(false);
 
+  // Fetch files if not already in submission object
   useEffect(() => {
-    if (!teamId) return;
+    if (!teamId || (submission?.files && submission.files.length > 0)) return;
     setFilesLoading(true);
-    apiClient
-      .get(`/api/v1/advisors/submissions`)
-      .then((res) => {
-        const allSubs = Array.isArray(res.data) ? res.data : [];
+    const fetchFiles = async () => {
+      try {
+        const res = await apiClient.get<any>(`/api/v1/advisors/submissions`);
+        const allSubs = Array.isArray(res?.data) ? res.data : [];
         const teamSub = allSubs.find((s: any) => s.team_id === teamId);
         if (teamSub?.id) {
-          return apiClient.get(`/api/v1/advisors/submissions/${teamSub.id}/files`);
+          const filesRes = await apiClient.get<any>(`/api/v1/advisors/submissions/${teamSub.id}/files`);
+          setFallbackFiles(Array.isArray(filesRes?.data) ? filesRes.data : []);
+        } else {
+          setFallbackFiles([]);
         }
-        return { data: [] };
-      })
-      .then((res) => {
-        setSubmissionFiles(Array.isArray(res.data) ? res.data : []);
-      })
-      .catch(() => {
-        setSubmissionFiles([]);
-      })
-      .finally(() => setFilesLoading(false));
-  }, [teamId]);
+      } catch {
+        setFallbackFiles([]);
+      } finally {
+        setFilesLoading(false);
+      }
+    };
+    fetchFiles();
+  }, [teamId, submission]);
 
   useEffect(() => {
-    if (existingEval) {
+    // 1. Prioritize evaluation on the latest submission
+    if (submission?.evaluation) {
+      const subEval = submission.evaluation;
+      if (subEval.feedback) setRemarks(subEval.feedback);
+      if (subEval.scores && subEval.scores.length > 0) {
+        for (const sc of subEval.scores) {
+          const crit = (sc.rubric_criterion || "").toLowerCase();
+          if (crit.includes("execution")) setProjectExecution(sc.score);
+          else if (crit.includes("depth") || crit.includes("method")) setTechnicalDepth(sc.score);
+          else if (crit.includes("presentation") || crit.includes("viva")) setPresentationViva(sc.score);
+          else if (crit.includes("documentation") || crit.includes("report")) setDocumentation(sc.score);
+          else if (crit.includes("contribution") || crit.includes("progress")) setContribution(sc.score);
+        }
+      } else if (subEval.total_score !== null && subEval.total_score !== undefined) {
+        const perCriterion = Math.round((subEval.total_score / 5) * 2) / 2;
+        setProjectExecution(perCriterion);
+        setTechnicalDepth(perCriterion);
+        setPresentationViva(perCriterion);
+        setDocumentation(perCriterion);
+        setContribution(subEval.total_score - 4 * perCriterion);
+      }
+      setEvaluationStatus("EVALUATED");
+    } else if (existingEval) {
+      // 2. Fall back to team-level evaluation if present
       const scores = existingEval.scores || existingEval.criteria_scores;
       if (scores) {
         setProjectExecution(scores.project_execution ?? scores.problem_formulation ?? 0);
@@ -93,8 +127,8 @@ export function AdvisorTeamSubmissionReviewPage() {
       if (existingEval.verdict) {
         setRecommendation((existingEval.verdict as any) || "APPROVED");
       }
-      if (existingEval.remarks) {
-        setRemarks(existingEval.remarks);
+      if (existingEval.remarks || existingEval.team_remarks) {
+        setRemarks(existingEval.remarks || existingEval.team_remarks || "");
       }
       if (existingEval.strengths) {
         setStrengths(existingEval.strengths);
@@ -103,7 +137,7 @@ export function AdvisorTeamSubmissionReviewPage() {
         setAreasForImprovement(existingEval.areas_for_improvement);
       }
       if (existingEval.status) {
-        setEvaluationStatus(existingEval.status);
+        setEvaluationStatus(existingEval.status as any);
       }
     } else if (team && team.marks_awarded !== undefined && team.marks_awarded > 0) {
       const perCriterion = Math.round((team.marks_awarded / 5) * 2) / 2;
@@ -116,7 +150,7 @@ export function AdvisorTeamSubmissionReviewPage() {
         setRemarks(team.evaluation_remarks);
       }
     }
-  }, [existingEval, team]);
+  }, [existingEval, team, submission]);
 
   const totalScore = useMemo(() => {
     return (
@@ -136,6 +170,8 @@ export function AdvisorTeamSubmissionReviewPage() {
   const isCompleted =
     (team?.evaluation_status === "COMPLETED" ||
       team?.evaluation_status === "EVALUATED" ||
+      submission?.status === "evaluated" ||
+      Boolean(submission?.evaluation) ||
       Boolean(existingEval?.total_score || existingEval?.team_score)) &&
     !isEditing;
 
@@ -144,6 +180,25 @@ export function AdvisorTeamSubmissionReviewPage() {
     if (!teamId) return;
 
     try {
+      // 1. Evaluate against the specific submission if present
+      if (submission?.id) {
+        await evaluateSubmissionMutation.mutateAsync({
+          submissionId: submission.id,
+          payload: {
+            feedback: remarks || strengths || "Evaluated by Faculty Advisor",
+            total_score: totalScore,
+            scores: [
+              { rubric_criterion: "Project Execution", max_score: 20, score: projectExecution },
+              { rubric_criterion: "Technical Depth", max_score: 20, score: technicalDepth },
+              { rubric_criterion: "Presentation / Viva", max_score: 20, score: presentationViva },
+              { rubric_criterion: "Documentation", max_score: 20, score: documentation },
+              { rubric_criterion: "Contribution", max_score: 20, score: contribution },
+            ],
+          },
+        });
+      }
+
+      // 2. Also save team evaluation for institutional committee records
       await saveEvaluationMutation.mutateAsync({
         teamId,
         payload: {
@@ -180,7 +235,7 @@ export function AdvisorTeamSubmissionReviewPage() {
     }
   };
 
-  if (isTeamLoading || isEvalLoading) {
+  if (isTeamLoading || isEvalLoading || isSubmissionLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
@@ -208,11 +263,14 @@ export function AdvisorTeamSubmissionReviewPage() {
   }
 
   const teamIdentifier = team.id || team.team_id || "team-001";
-  const sub = team.submission_detail;
-  const project = team.project;
+  const activeSubmission = submission || team.submission_detail;
+  const project = activeSubmission?.project || teamProject || team.project;
   const members = team.members || [];
-
-  const hasSubmission = Boolean(sub);
+  const hasSubmission = Boolean(activeSubmission);
+  const activeFiles =
+    activeSubmission?.files && activeSubmission.files.length > 0
+      ? activeSubmission.files
+      : fallbackFiles;
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
@@ -240,21 +298,28 @@ export function AdvisorTeamSubmissionReviewPage() {
               </span>
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  team.submission_status === "SUBMITTED"
+                  (activeSubmission?.status || team.submission_status)?.toUpperCase() === "SUBMITTED" ||
+                  (activeSubmission?.status || team.submission_status)?.toUpperCase() === "EVALUATED"
                     ? "bg-blue-100 text-blue-800"
                     : "bg-slate-100 text-slate-700"
                 }`}
               >
-                {team.submission_status || "NOT SUBMITTED"}
+                {(activeSubmission?.status || team.submission_status || "NOT SUBMITTED").toUpperCase()}
               </span>
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  team.evaluation_status === "COMPLETED" || team.evaluation_status === "EVALUATED"
+                  activeSubmission?.status === "evaluated" ||
+                  team.evaluation_status === "COMPLETED" ||
+                  team.evaluation_status === "EVALUATED" ||
+                  Boolean(activeSubmission?.evaluation)
                     ? "bg-emerald-100 text-emerald-800"
                     : "bg-amber-100 text-amber-800"
                 }`}
               >
-                {team.evaluation_status === "COMPLETED" || team.evaluation_status === "EVALUATED"
+                {activeSubmission?.status === "evaluated" ||
+                team.evaluation_status === "COMPLETED" ||
+                team.evaluation_status === "EVALUATED" ||
+                Boolean(activeSubmission?.evaluation)
                   ? "EVALUATED"
                   : "PENDING"}
               </span>
@@ -264,8 +329,18 @@ export function AdvisorTeamSubmissionReviewPage() {
               {team.name}
             </h1>
             <p className="text-sm font-bold text-slate-700">
-              {team.project_title}
+              {project?.title || team.project_title}
             </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              to={`/advisor/teams/${teamIdentifier}/evaluation`}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0F5132] hover:bg-[#0b3c25] text-white text-xs font-bold transition shadow-sm"
+            >
+              <Award className="w-4 h-4" />
+              <span>Full Viva Evaluation Rubric</span>
+            </Link>
           </div>
         </div>
 
@@ -294,10 +369,10 @@ export function AdvisorTeamSubmissionReviewPage() {
 
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Current Phase
+              Current Phase / Type
             </span>
             <span className="text-xs font-bold text-slate-800 mt-1 block font-mono">
-              {team.current_phase || "—"}
+              {activeSubmission?.submission_type || team.current_phase || "Phase II"}
             </span>
           </div>
 
@@ -306,7 +381,9 @@ export function AdvisorTeamSubmissionReviewPage() {
               Submitted Date &amp; Time
             </span>
             <span className="text-xs font-bold text-slate-800 mt-1 block font-mono">
-              {team.submission_date || "—"}
+              {activeSubmission?.created_at
+                ? new Date(activeSubmission.created_at).toLocaleString()
+                : team.submission_date || "—"}
             </span>
           </div>
         </div>
@@ -349,16 +426,26 @@ export function AdvisorTeamSubmissionReviewPage() {
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs font-bold text-emerald-950">
-                  Official Submission Locked
+                  {activeSubmission?.title || "Project Submission Deliverable"}
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-emerald-200/70 text-emerald-900">
-                  {sub?.status?.toUpperCase() || "SUBMITTED"}
+                  {(activeSubmission?.status || "SUBMITTED").toUpperCase()}
                 </span>
+                {activeSubmission?.submission_type && (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    {activeSubmission.submission_type}
+                  </span>
+                )}
+                {activeSubmission?.submitter_name && (
+                  <span className="text-[11px] text-emerald-800 font-medium">
+                    • Submitted by {activeSubmission.submitter_name}
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-emerald-800 mt-0.5">
-                Deliverables are permanently locked and queued for Faculty Advisor &amp; PRC viva scoring.
+                {activeSubmission?.description || "Deliverables are submitted, archived, and queued for faculty review and evaluation."}
               </p>
             </div>
           </div>
@@ -529,9 +616,9 @@ export function AdvisorTeamSubmissionReviewPage() {
           <div className="flex items-center justify-center py-8">
             <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : submissionFiles.length > 0 ? (
+        ) : activeFiles.length > 0 ? (
           <div className="space-y-2.5">
-            {submissionFiles.map((file: any, idx: number) => (
+            {activeFiles.map((file: any, idx: number) => (
               <div
                 key={file.id || idx}
                 className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition"
@@ -551,6 +638,18 @@ export function AdvisorTeamSubmissionReviewPage() {
                     </span>
                   </div>
                 </div>
+                {file.download_url && (
+                  <a
+                    href={file.download_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-[#0F5132] hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold transition shrink-0"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download / View</span>
+                  </a>
+                )}
               </div>
             ))}
           </div>
@@ -560,6 +659,51 @@ export function AdvisorTeamSubmissionReviewPage() {
           </div>
         )}
       </div>
+
+      {/* Submission Versions History */}
+      {teamSubmissions.length > 0 && (
+        <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#0F5132]" />
+              <h2 className="text-sm font-bold text-slate-900">
+                All Submission Versions ({teamSubmissions.length})
+              </h2>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {teamSubmissions.map((s: any, sIdx: number) => (
+              <div key={s.id || sIdx} className="py-2.5 flex items-center justify-between text-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-800">
+                      {s.title || `Submission #${teamSubmissions.length - sIdx}`}
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700">
+                      {(s.status || "SUBMITTED").toUpperCase()}
+                    </span>
+                    {s.submission_type && (
+                      <span className="text-[10px] font-mono text-slate-500">
+                        ({s.submission_type})
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                    {s.created_at ? new Date(s.created_at).toLocaleString() : ""}
+                    {s.submitter_name ? ` • by ${s.submitter_name}` : ""}
+                    {s.evaluation ? ` • Scored ${s.evaluation.total_score}/100` : ""}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono text-slate-500">
+                    {(s.files || []).length} file(s)
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 6. Evaluation Section */}
       {isCompleted ? (

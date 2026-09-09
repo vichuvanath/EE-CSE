@@ -199,7 +199,11 @@ class Project(Base):
         String(36), ForeignKey("teams.id", ondelete="CASCADE"), nullable=False, index=True
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    domain: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    problem_statement: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    proposed_solution: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    technologies_used: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     github_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     live_demo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     status: Mapped[str] = mapped_column(

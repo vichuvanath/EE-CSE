@@ -260,7 +260,11 @@ export type WeeklySubmissionStatus =
   | "REJECTED"
   | "RESUBMITTED"
   | "APPROVED"
-  | "LOCKED";
+  | "LOCKED"
+  | "evaluated"
+  | "pending"
+  | "submitted"
+  | string;
 
 export interface WeeklySubmittedFile {
   name: string;
@@ -326,6 +330,13 @@ export interface WeeklySubmissionRecord {
   evaluated_by?: string;
   evaluated_at?: string;
   criteria_scores?: Record<string, { score: number; max: number }>;
+  evaluation_scores?: Array<{ rubric_criterion: string; score: number; max_score: number; comment?: string }>;
+  evaluation?: any;
+  project?: any;
+  title?: string;
+  submitter_name?: string;
+  description?: string;
+  created_at?: string;
   auto_submitted?: boolean;
   github_url?: string;
   live_demo_url?: string;
@@ -454,7 +465,9 @@ export type AdvisorEvaluationReviewStatus =
   | "EVALUATED"
   | "APPROVED"
   | "IN_PROGRESS"
-  | "CHANGES_REQUESTED";
+  | "CHANGES_REQUESTED"
+  | "LOCKED"
+  | string;
 
 export interface TeamEvaluationResponse {
   id?: string;
@@ -476,6 +489,8 @@ export interface TeamEvaluationResponse {
   evaluated_by?: string;
   milestone_title?: string;
   submission_week?: number;
+  student_evaluations?: any[];
+  [key: string]: any;
 }
 
 export interface TeamEvaluationRequest {

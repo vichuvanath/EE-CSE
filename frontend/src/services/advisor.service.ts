@@ -111,6 +111,26 @@ export const advisorService = {
     return data;
   },
 
+  async evaluateSubmission(
+    submissionId: string,
+    payload: {
+      feedback: string;
+      total_score: number;
+      scores?: {
+        rubric_criterion: string;
+        max_score: number;
+        score: number;
+        comments?: string;
+      }[];
+    }
+  ): Promise<any> {
+    const { data } = await apiClient.post<any>(
+      `/api/v1/advisors/submissions/${submissionId}/evaluate`,
+      payload
+    );
+    return data;
+  },
+
   // Evaluations
   async getEvaluations(): Promise<any[]> {
     const { data } = await apiClient.get<any[]>("/api/v1/advisors/evaluations");

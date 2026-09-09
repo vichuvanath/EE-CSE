@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.models.evaluation import Evaluation
 from app.dependencies.auth import require_role
 from app.models.academic import Project, Team, TeamMember
 from app.models.audit import AuditLog
@@ -46,6 +47,7 @@ class MySubmissionResponse(BaseModel):
     checklist: Optional[SubmissionChecklistResponse] = None
     files: List[Dict[str, Any]] = []
     project: Optional[Dict[str, Any]] = None
+    evaluation: Optional[Dict[str, Any]] = None
 
 
 class FinalSubmissionResponse(BaseModel):
@@ -213,18 +215,45 @@ def get_my_submission(
     if project:
         project_data = {
             "id": project.id,
+            "team_id": project.team_id,
             "title": project.title,
-            "description": project.description,
+            "domain": getattr(project, "domain", "") or "",
+            "problem_statement": getattr(project, "problem_statement", "") or "",
+            "description": project.description or "",
+            "proposed_solution": getattr(project, "proposed_solution", "") or "",
+            "technologies_used": getattr(project, "technologies_used", "") or "",
+            "github_url": getattr(project, "github_url", "") or "",
+            "live_demo_url": getattr(project, "live_demo_url", "") or "",
             "status": project.status,
+            "created_at": project.created_at.isoformat() if project.created_at else None,
+            "updated_at": project.updated_at.isoformat() if project.updated_at else None,
         }
+
+    evaluation_data = None
+    if submission:
+        eval_obj = db.query(Evaluation).filter(Evaluation.submission_id == submission.id).first()
+        if eval_obj:
+            evaluator_name = None
+            if eval_obj.evaluator_id:
+                ev_user = db.query(User).filter(User.id == eval_obj.evaluator_id).first()
+                if ev_user:
+                    evaluator_name = ev_user.full_name
+            evaluation_data = {
+                "id": eval_obj.id,
+                "feedback": eval_obj.feedback,
+                "total_score": eval_obj.total_score,
+                "evaluator_name": evaluator_name,
+                "created_at": eval_obj.created_at.isoformat() if eval_obj.created_at else None,
+            }
 
     return MySubmissionResponse(
         submission_id=submission.id if submission else None,
         status=submission.status if submission else "NOT_SUBMITTED",
-        submitted_at=submission.updated_at if submission and submission.status == "submitted" else None,
+        submitted_at=submission.updated_at if submission and submission.status in ("submitted", "evaluated") else None,
         checklist=checklist,
         files=files,
         project=project_data,
+        evaluation=evaluation_data,
     )
 
 
@@ -234,9 +263,25 @@ def get_submission_history(
     db: Session = Depends(get_db),
 ):
     """
-    Get submission history for the student's team.
+    Get submission history for the student's team, including evaluation data.
     """
     student, team, project = _get_student_team_and_project(db, current_user)
+
+    # Get guide name from team assignment
+    from app.models.academic import TeamAssignment
+    from app.models.advisor import Advisor as AdvisorModel
+    guide_name = None
+    guide_email = None
+    assignment = (
+        db.query(TeamAssignment)
+        .filter(TeamAssignment.team_id == team.id)
+        .first()
+    )
+    if assignment:
+        advisor = db.query(AdvisorModel).filter(AdvisorModel.id == assignment.advisor_id).first()
+        if advisor and advisor.user:
+            guide_name = advisor.user.full_name
+            guide_email = advisor.user.email
 
     submissions = (
         db.query(Submission)
@@ -247,16 +292,94 @@ def get_submission_history(
 
     submission_records = []
     for i, sub in enumerate(submissions):
+        # Look up evaluation for this submission
+        eval_obj = (
+            db.query(Evaluation)
+            .filter(Evaluation.submission_id == sub.id)
+            .first()
+        )
+        is_evaluated = eval_obj is not None
+        evaluation_feedback = None
+        evaluation_score = None
+        evaluator_name = None
+        evaluated_at = None
+        evaluation_scores = []
+
+        if eval_obj:
+            evaluation_feedback = eval_obj.feedback
+            evaluation_score = eval_obj.total_score
+            evaluated_at = eval_obj.created_at.isoformat() if eval_obj.created_at else None
+            if eval_obj.evaluator_id:
+                evaluator = db.query(User).filter(User.id == eval_obj.evaluator_id).first()
+                if evaluator:
+                    evaluator_name = evaluator.full_name
+            if eval_obj.scores:
+                for sc in eval_obj.scores:
+                    evaluation_scores.append({
+                        "rubric_criterion": sc.rubric_criterion,
+                        "max_score": sc.max_score,
+                        "score": sc.score,
+                        "comments": sc.comments,
+                    })
+
+        # Build timeline
+        timeline = [
+            {
+                "title": "Created",
+                "timestamp": sub.created_at.isoformat() if sub.created_at else None,
+                "status": "done",
+            },
+            {
+                "title": "Submitted",
+                "timestamp": sub.updated_at.isoformat() if sub.updated_at else None,
+                "status": "done" if sub.status in ("submitted", "evaluated") else "current",
+            },
+        ]
+        if is_evaluated:
+            timeline.append({
+                "title": "Evaluated",
+                "timestamp": evaluated_at,
+                "status": "done",
+            })
+
+        calculated_grade = None
+        if evaluation_score is not None:
+            pct = (float(evaluation_score) / 100.0) * 100.0
+            if pct >= 90:
+                calculated_grade = "A+"
+            elif pct >= 80:
+                calculated_grade = "A"
+            elif pct >= 70:
+                calculated_grade = "B+"
+            elif pct >= 60:
+                calculated_grade = "B"
+            else:
+                calculated_grade = "C"
+
         submission_records.append({
             "id": sub.id,
             "week_number": i + 1,
             "week_title": sub.title,
             "is_current_week": i == 0,
             "submission_date": sub.created_at.isoformat() if sub.created_at else None,
+            "submission_time": sub.created_at.strftime("%I:%M %p") if sub.created_at else "",
             "deadline": None,
+            "deadline_timestamp": None,
             "is_late": False,
             "status": sub.status.upper(),
             "submission_type": sub.submission_type,
+            "guide_name": guide_name or "",
+            "guide_email": guide_email or "",
+            "progress_contribution": 0,
+            "is_locked": sub.status == "evaluated",
+            "is_evaluated": is_evaluated,
+            "marks_awarded": evaluation_score,
+            "max_marks": 100,
+            "grade": calculated_grade,
+            "evaluated_by": evaluator_name,
+            "evaluated_at": evaluated_at,
+            "guide_remarks": evaluation_feedback,
+            "evaluation_scores": evaluation_scores,
             "files": [
                 {
                     "name": f.file_name,
@@ -267,34 +390,24 @@ def get_submission_history(
                 }
                 for f in (sub.files if sub.files else [])
             ],
-            "timeline": [
-                {
-                    "title": "Created",
-                    "timestamp": sub.created_at.isoformat() if sub.created_at else None,
-                    "status": "done",
-                },
-                {
-                    "title": "Submitted",
-                    "timestamp": sub.updated_at.isoformat() if sub.updated_at else None,
-                    "status": "done" if sub.status == "submitted" else "current",
-                },
-            ],
+            "attempts": [],
+            "timeline": timeline,
         })
 
     return {
         "project_info": {
             "project_title": project.title if project else None,
-            "domain": None,
+            "domain": getattr(project, "domain", None) if project else None,
             "team_id": team.id,
             "team_name": team.name,
-            "guide_name": None,
-            "guide_email": None,
+            "guide_name": guide_name,
+            "guide_email": guide_email,
             "student_roll": student.roll_number,
             "student_name": current_user.full_name,
             "problem_statement": project.description if project else None,
             "description": project.description if project else None,
-            "proposed_solution": None,
-            "technologies_used": None,
+            "proposed_solution": getattr(project, "proposed_solution", None) if project else None,
+            "technologies_used": getattr(project, "technologies_used", None) if project else None,
         },
         "summary": {
             "total_weeks": len(submissions),
@@ -304,10 +417,11 @@ def get_submission_history(
             "current_progress_percentage": 0,
             "submission_rate_percentage": 100 if submissions else 0,
             "on_time_count": len(submissions),
-            "total_submitted_count": sum(1 for s in submissions if s.status == "submitted"),
+            "total_submitted_count": sum(1 for s in submissions if s.status in ("submitted", "evaluated")),
         },
         "submissions": submission_records,
     }
+
 
 
 @router.post("/final", response_model=FinalSubmissionResponse)
@@ -339,6 +453,12 @@ def submit_final_submission(
         )
         db.add(submission)
         db.flush()
+    else:
+        submission.project_id = project.id
+        if project.title and (not submission.title or submission.title == "Project Submission"):
+            submission.title = project.title
+        if project.description and not submission.description:
+            submission.description = project.description
 
     now = datetime.now(timezone.utc)
     deadline = (

@@ -134,3 +134,49 @@ export function useUpdateAdvisorProfile() {
     },
   });
 }
+
+export function useAdvisorTeamSubmissions(teamId: string) {
+  return useQuery({
+    queryKey: ["advisor", "team", teamId, "submissions"] as const,
+    queryFn: () => advisorService.getTeamSubmissions(teamId),
+    enabled: Boolean(teamId),
+  });
+}
+
+export function useEvaluateSubmission() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      submissionId,
+      payload,
+    }: {
+      submissionId: string;
+      payload: {
+        feedback: string;
+        total_score: number;
+        scores?: {
+          rubric_criterion: string;
+          max_score: number;
+          score: number;
+          comments?: string;
+        }[];
+      };
+    }) => advisorService.evaluateSubmission(submissionId, payload),
+    onSuccess: (_, variables) => {
+      toast.success("Evaluation Saved", {
+        description: "Submission evaluation has been recorded successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: advisorQueryKeys.dashboard });
+      queryClient.invalidateQueries({ queryKey: advisorQueryKeys.teams });
+      queryClient.invalidateQueries({ queryKey: advisorQueryKeys.records });
+      // Invalidate all team-related queries
+      queryClient.invalidateQueries({ queryKey: ["advisor", "team"] });
+    },
+    onError: (err: any) => {
+      toast.error("Evaluation Failed", {
+        description: err?.message || "Failed to save submission evaluation.",
+      });
+    },
+  });
+}
+

@@ -110,19 +110,28 @@ def update_student_project(
     if payload.title is not None:
         project.title = payload.title.strip()
     if payload.domain is not None:
-        setattr(project, "domain", payload.domain)
+        project.domain = payload.domain
     if payload.problem_statement is not None:
-        setattr(project, "problem_statement", payload.problem_statement)
+        project.problem_statement = payload.problem_statement
     if payload.description is not None:
         project.description = payload.description
     if payload.proposed_solution is not None:
-        setattr(project, "proposed_solution", payload.proposed_solution)
+        project.proposed_solution = payload.proposed_solution
     if payload.technologies_used is not None:
-        setattr(project, "technologies_used", payload.technologies_used)
+        project.technologies_used = payload.technologies_used
     if payload.github_url is not None:
-        setattr(project, "github_url", payload.github_url)
+        project.github_url = payload.github_url
     if payload.live_demo_url is not None:
-        setattr(project, "live_demo_url", payload.live_demo_url)
+        project.live_demo_url = payload.live_demo_url
+
+    # Synchronize submissions for this team to point to project
+    from app.models.submission import Submission
+    submissions = db.query(Submission).filter(Submission.team_id == team.id).all()
+    for sub in submissions:
+        if not sub.project_id or sub.project_id != project.id:
+            sub.project_id = project.id
+        if payload.title is not None and (not sub.title or sub.title.startswith("Team ") or sub.title == "Project Submission"):
+            sub.title = payload.title.strip()
 
     db.commit()
     db.refresh(project)

@@ -35,7 +35,7 @@ import {
 } from "@/types";
 import { toast } from "sonner";
 
-type FilterTab = "ALL" | "APPROVED" | "REJECTED";
+type FilterTab = "ALL" | "EVALUATED" | "PENDING" | "APPROVED" | "REJECTED";
 
 export function StudentMySubmissionsPage() {
   const { data, isLoading, error, refetch } = useStudentWeeklySubmissions();
@@ -56,27 +56,36 @@ export function StudentMySubmissionsPage() {
     }
   };
 
-  // SUBMISSION HISTORY: Display ONLY evaluated past history!
-  // Submissions appear here only after advisor evaluation is complete.
-  const evaluatedHistorySubmissions = useMemo(() => {
+  // SUBMISSION HISTORY: Display ALL project submissions (both evaluated and pending review)
+  const allSubmissions = useMemo(() => {
     if (!data?.submissions) return [];
-    return data.submissions.filter((sub) => sub.is_evaluated === true);
+    return data.submissions;
   }, [data?.submissions]);
 
-  // Filter and Search on Evaluated History
+  const evaluatedCount = useMemo(() => {
+    return allSubmissions.filter((sub) => sub.is_evaluated === true).length;
+  }, [allSubmissions]);
+
+  const pendingCount = useMemo(() => {
+    return allSubmissions.length - evaluatedCount;
+  }, [allSubmissions, evaluatedCount]);
+
+  // Filter and Search on All Submissions
   const filteredSubmissions = useMemo(() => {
-    return evaluatedHistorySubmissions.filter((sub) => {
+    return allSubmissions.filter((sub) => {
       // 1. Tab filter
+      if (activeTab === "EVALUATED" && !sub.is_evaluated) return false;
+      if (activeTab === "PENDING" && sub.is_evaluated) return false;
       if (activeTab === "APPROVED" && sub.status !== "APPROVED") return false;
       if (activeTab === "REJECTED" && sub.status !== "REJECTED") return false;
 
       // 2. Search query filter
       if (searchQuery.trim() !== "") {
         const q = searchQuery.toLowerCase();
-        const matchTitle = sub.week_title.toLowerCase().includes(q);
-        const matchStatus = sub.status.toLowerCase().includes(q);
-        const matchDate = sub.submission_date.toLowerCase().includes(q);
-        const matchGuide = sub.guide_name.toLowerCase().includes(q);
+        const matchTitle = (sub.week_title || "").toLowerCase().includes(q);
+        const matchStatus = (sub.status || "").toLowerCase().includes(q);
+        const matchDate = (sub.submission_date || "").toLowerCase().includes(q);
+        const matchGuide = (sub.guide_name || "").toLowerCase().includes(q);
         const matchGrade = sub.grade ? sub.grade.toLowerCase().includes(q) : false;
         const matchMarks = sub.marks_awarded ? sub.marks_awarded.toString().includes(q) : false;
         return matchTitle || matchStatus || matchDate || matchGuide || matchGrade || matchMarks;
@@ -84,7 +93,7 @@ export function StudentMySubmissionsPage() {
 
       return true;
     });
-  }, [evaluatedHistorySubmissions, activeTab, searchQuery]);
+  }, [allSubmissions, activeTab, searchQuery]);
 
   const getFileCategoryIcon = (category: WeeklySubmittedFile["category"]) => {
     switch (category) {
@@ -128,11 +137,11 @@ export function StudentMySubmissionsPage() {
                 Submission History
               </h3>
               <span className="px-2 py-0.5 rounded text-xs font-semibold font-mono bg-emerald-50 text-[#034419] border border-emerald-200">
-                {evaluatedHistorySubmissions.length} Evaluated
+                {allSubmissions.length} Submissions • {evaluatedCount} Evaluated
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Submissions appear here <strong>only after advisor evaluation</strong> is complete. Showing official marks, grades, and criteria breakdowns.
+              Live project submission deliverables and faculty advisor evaluations. Showing official marks, qualitative feedback, and rubric scorecards.
             </p>
           </div>
 
@@ -156,17 +165,19 @@ export function StudentMySubmissionsPage() {
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
             {(
               [
-                { key: "ALL", label: `All Evaluated Weeks (${evaluatedHistorySubmissions.length})` },
+                { key: "ALL", label: `All Submissions (${allSubmissions.length})` },
+                { key: "EVALUATED", label: `Evaluated (${evaluatedCount})` },
+                { key: "PENDING", label: `Pending Review (${pendingCount})` },
                 {
                   key: "APPROVED",
                   label: `Approved (${
-                    evaluatedHistorySubmissions.filter((s) => s.status === "APPROVED").length
+                    allSubmissions.filter((s) => s.status === "APPROVED").length
                   })`,
                 },
                 {
                   key: "REJECTED",
-                  label: `Revisions / Resubmissions (${
-                    evaluatedHistorySubmissions.filter((s) => s.status === "REJECTED").length
+                  label: `Revisions (${
+                    allSubmissions.filter((s) => s.status === "REJECTED").length
                   })`,
                 },
               ] as { key: FilterTab; label: string }[]
@@ -191,7 +202,7 @@ export function StudentMySubmissionsPage() {
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search evaluated marks, grade, week..."
+              placeholder="Search marks, grade, title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-[#034419] transition-colors"
@@ -209,15 +220,15 @@ export function StudentMySubmissionsPage() {
         </div>
       </div>
 
-      {/* EVALUATED SUBMISSION HISTORY CARDS GRID */}
+      {/* SUBMISSION HISTORY CARDS GRID */}
       {filteredSubmissions.length === 0 ? (
         <div className="bg-white rounded-lg border border-dashed border-slate-300 p-8 text-center space-y-2">
           <History className="w-8 h-8 text-slate-400 mx-auto" />
           <p className="text-sm font-semibold text-slate-800">
-            No evaluated submissions found
+            No submissions found
           </p>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Submissions only appear in this history after the advisor reviews and completes evaluation.
+            Submissions will appear here as soon as your team submits milestone deliverables from the submission portal.
           </p>
         </div>
       ) : (
@@ -262,67 +273,89 @@ export function StudentMySubmissionsPage() {
                   </p>
                 </div>
 
-                {/* PROMINENT ADVISOR EVALUATION MARKS & GRADE BOX */}
-                <div className="p-2.5 rounded-md bg-emerald-50/50 border border-emerald-200/80 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <Award className="w-3.5 h-3.5 text-[#034419]" />
-                      <span className="text-[10px] font-semibold text-[#034419] uppercase tracking-wider">
-                        Advisor Evaluation
-                      </span>
+                {sub.is_evaluated ? (
+                  /* PROMINENT ADVISOR EVALUATION MARKS & GRADE BOX */
+                  <div className="p-2.5 rounded-md bg-emerald-50/50 border border-emerald-200/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Award className="w-3.5 h-3.5 text-[#034419]" />
+                        <span className="text-[10px] font-semibold text-[#034419] uppercase tracking-wider">
+                          Advisor Evaluation
+                        </span>
+                      </div>
+                      {sub.grade && (
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#034419] text-white">
+                          Grade {sub.grade}
+                        </span>
+                      )}
                     </div>
-                    {sub.grade && (
-                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#034419] text-white">
-                        Grade {sub.grade}
-                      </span>
+
+                    <div className="flex items-baseline justify-between pt-0.5">
+                      <div>
+                        <span className="text-xl font-bold font-mono text-slate-900">
+                          {sub.marks_awarded ?? "—"}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono font-medium">
+                          {" "}
+                          / {sub.max_marks || 100} Marks
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-400 uppercase font-medium block">
+                          Percentage
+                        </span>
+                        <span className="text-xs font-bold font-mono text-emerald-800">
+                          {sub.marks_awarded ? Math.round((sub.marks_awarded / (sub.max_marks || 100)) * 100) : 0}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {sub.guide_remarks && (
+                      <p className="text-[11px] text-slate-600 line-clamp-2 italic pt-1 border-t border-emerald-100">
+                        "{sub.guide_remarks}"
+                      </p>
                     )}
                   </div>
-
-                  <div className="flex items-baseline justify-between pt-0.5">
-                    <div>
-                      <span className="text-xl font-bold font-mono text-slate-900">
-                        {sub.marks_awarded ?? "—"}
-                      </span>
-                      <span className="text-xs text-slate-500 font-mono font-medium">
-                        {" "}
-                        / {sub.max_marks || 100} Marks
-                      </span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-400 uppercase font-medium block">
-                        Percentage
-                      </span>
-                      <span className="text-xs font-bold font-mono text-emerald-800">
-                        {sub.marks_awarded ? Math.round((sub.marks_awarded / (sub.max_marks || 100)) * 100) : 0}%
+                ) : (
+                  /* PENDING FACULTY REVIEW BOX */
+                  <div className="p-2.5 rounded-md bg-amber-50/70 border border-amber-200/80 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-700" />
+                        <span className="text-[10px] font-semibold text-amber-800 uppercase tracking-wider">
+                          Faculty Review
+                        </span>
+                      </div>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-amber-200 text-amber-900">
+                        PENDING
                       </span>
                     </div>
-                  </div>
-
-                  {sub.guide_remarks && (
-                    <p className="text-[11px] text-slate-600 line-clamp-2 italic pt-1 border-t border-emerald-100">
-                      "{sub.guide_remarks}"
+                    <p className="text-[11px] text-amber-800 pt-0.5">
+                      Deliverables submitted and queued for advisor review and evaluation.
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Evaluator & Progress Information */}
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
                   <div>
                     <span className="text-[10px] text-slate-400 uppercase font-medium block">
-                      Evaluated By
+                      {sub.is_evaluated ? "Evaluated By" : "Assigned Guide"}
                     </span>
                     <span className="text-slate-800 font-medium truncate max-w-[150px] block">
-                      {sub.evaluated_by ? sub.evaluated_by.split(",")[0] : sub.guide_name.split(",")[0]}
+                      {sub.is_evaluated
+                        ? (sub.evaluated_by ? sub.evaluated_by.split(",")[0] : sub.guide_name.split(",")[0])
+                        : (sub.guide_name ? sub.guide_name.split(",")[0] : "Faculty Advisor")}
                     </span>
                   </div>
 
                   <div className="text-right">
                     <span className="text-[10px] text-slate-400 uppercase font-medium block">
-                      Progress
+                      Status
                     </span>
-                    <span className="font-bold text-[#034419] font-mono">
-                      +{sub.progress_contribution}%
+                    <span className="font-bold text-[#034419] font-mono text-[11px]">
+                      {sub.is_evaluated ? `+${sub.progress_contribution || 0}% Progress` : "In Review"}
                     </span>
                   </div>
                 </div>
@@ -340,17 +373,30 @@ export function StudentMySubmissionsPage() {
 
               {/* Card Footer Button */}
               <div className="p-3 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                  <Lock className="w-3 h-3 text-slate-400" />
-                  <span>Evaluated & Locked</span>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  {sub.is_evaluated ? (
+                    <>
+                      <Lock className="w-3 h-3 text-emerald-600" />
+                      <span className="text-emerald-800 font-medium">Evaluated &amp; Locked</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-3 h-3 text-amber-600" />
+                      <span className="text-amber-800 font-medium">Under Advisor Review</span>
+                    </>
+                  )}
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setSelectedSubmission(sub)}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#034419] hover:bg-[#023112] rounded-md shadow-none transition-colors cursor-pointer"
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md shadow-none transition-colors cursor-pointer ${
+                    sub.is_evaluated
+                      ? "text-white bg-[#034419] hover:bg-[#023112]"
+                      : "text-slate-700 bg-white border border-slate-300 hover:bg-slate-50"
+                  }`}
                 >
-                  View Marks & Details
+                  <span>{sub.is_evaluated ? "View Marks & Details" : "View Submission"}</span>
                   <ArrowUpRight className="w-3 h-3" />
                 </button>
               </div>
@@ -404,82 +450,134 @@ export function StudentMySubmissionsPage() {
 
             {/* Modal Scrollable Body */}
             <div className="p-4 sm:p-5 space-y-5 overflow-y-auto">
-              {/* Lock notice */}
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2.5 text-xs text-slate-600">
-                <Lock className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>
-                  <strong>Official Evaluated Record:</strong> This milestone was evaluated by your advisor. Marks and grades have been committed to the institutional PRC archive and cannot be altered.
-                </span>
-              </div>
-
-              {/* A. ADVISOR EVALUATION & MARKS REPORT */}
-              <div className="bg-white rounded-lg border border-emerald-200/90 p-4 space-y-4 shadow-none">
-                <div className="flex items-center justify-between border-b border-emerald-100 pb-2.5">
-                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <GraduationCap className="w-4 h-4 text-[#034419]" />
-                    Advisor Evaluation & Marks Report
-                  </span>
-                  <span className="text-[11px] text-slate-500 font-mono">
-                    {selectedSubmission.evaluated_at
-                      ? `Evaluated: ${selectedSubmission.evaluated_at}`
-                      : "Evaluated"}
+              {/* Evaluation Status Notice */}
+              {selectedSubmission.is_evaluated ? (
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2.5 text-xs text-slate-600">
+                  <Lock className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    <strong>Official Evaluated Record:</strong> This milestone was evaluated by your advisor. Marks and grades have been committed to the institutional PRC archive.
                   </span>
                 </div>
-
-                {/* Scorecard Hero */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3.5 rounded-lg bg-emerald-50/40 border border-emerald-200/80 space-y-1 shadow-none">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">
-                      Total Marks Awarded
-                    </span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl sm:text-3xl font-bold font-mono text-[#034419]">
-                        {selectedSubmission.marks_awarded ?? "—"}
-                      </span>
-                      <span className="text-xs font-semibold font-mono text-slate-400">
-                        / {selectedSubmission.max_marks || 100}
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-emerald-800 font-semibold font-mono block">
-                      Score: {selectedSubmission.marks_awarded ? Math.round((selectedSubmission.marks_awarded / (selectedSubmission.max_marks || 100)) * 100) : 0}%
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-lg bg-emerald-50/40 border border-emerald-200/80 space-y-1 shadow-none">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">
-                      Letter Grade
-                    </span>
-                    <div className="pt-0.5">
-                      <span className="inline-block px-2.5 py-0.5 rounded-md text-base font-bold font-mono bg-[#034419] text-white">
-                        {selectedSubmission.grade || "N/A"}
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-slate-600 font-medium block pt-0.5">
-                      {selectedSubmission.grade === "A+"
-                        ? "Distinction / Outstanding"
-                        : selectedSubmission.grade === "A"
-                        ? "Excellent Performance"
-                        : selectedSubmission.grade === "B+"
-                        ? "Good / Satisfactory"
-                        : "Milestone Cleared"}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 rounded-lg bg-emerald-50/40 border border-emerald-200/80 space-y-1 shadow-none">
-                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">
-                      Evaluated By
-                    </span>
-                    <p className="text-xs font-bold text-slate-900 truncate">
-                      {selectedSubmission.evaluated_by || selectedSubmission.guide_name}
-                    </p>
-                    <p className="text-[10px] text-slate-500">
-                      PRC Faculty Advisor
-                    </p>
-                    <span className="text-[11px] text-[#034419] font-mono font-bold block pt-0.5">
-                      Contribution: +{selectedSubmission.progress_contribution}%
+              ) : (
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200/90 flex items-center gap-3 text-xs text-amber-900">
+                  <Clock className="w-5 h-5 text-amber-600 shrink-0" />
+                  <div>
+                    <span className="font-bold block text-amber-950">Awaiting Faculty Evaluation</span>
+                    <span className="text-amber-800 text-[11px] mt-0.5 block">
+                      Your deliverables for {selectedSubmission.week_title} have been submitted and are currently in queue for review by {selectedSubmission.guide_name || "your faculty advisor"}. Official scores, grade, and feedback will appear here as soon as evaluation is completed.
                     </span>
                   </div>
                 </div>
+              )}
+
+              {/* A. ADVISOR EVALUATION & MARKS REPORT (IF EVALUATED) */}
+              {selectedSubmission.is_evaluated && (
+                <div className="bg-white rounded-lg border border-emerald-200/90 p-4 space-y-4 shadow-none">
+                  <div className="flex items-center justify-between border-b border-emerald-100 pb-2.5">
+                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <GraduationCap className="w-4 h-4 text-[#034419]" />
+                      Advisor Evaluation & Marks Report
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-mono">
+                      {selectedSubmission.evaluated_at
+                        ? `Evaluated: ${selectedSubmission.evaluated_at}`
+                        : "Evaluated"}
+                    </span>
+                  </div>
+
+                  {/* Scorecard Hero */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="p-3.5 rounded-lg bg-emerald-50/40 border border-emerald-200/80 space-y-1 shadow-none">
+                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">
+                        Total Marks Awarded
+                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl sm:text-3xl font-bold font-mono text-[#034419]">
+                          {selectedSubmission.marks_awarded ?? "—"}
+                        </span>
+                        <span className="text-xs font-semibold font-mono text-slate-400">
+                          / {selectedSubmission.max_marks || 100}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-emerald-800 font-semibold font-mono block">
+                        Score: {selectedSubmission.marks_awarded ? Math.round((selectedSubmission.marks_awarded / (selectedSubmission.max_marks || 100)) * 100) : 0}%
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-lg bg-emerald-50/40 border border-emerald-200/80 space-y-1 shadow-none">
+                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">
+                        Letter Grade
+                      </span>
+                      <div className="pt-0.5">
+                        <span className="inline-block px-2.5 py-0.5 rounded-md text-base font-bold font-mono bg-[#034419] text-white">
+                          {selectedSubmission.grade || "N/A"}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-600 font-medium block pt-0.5">
+                        {selectedSubmission.grade === "A+"
+                          ? "Distinction / Outstanding"
+                          : selectedSubmission.grade === "A"
+                          ? "Excellent Performance"
+                          : selectedSubmission.grade === "B+"
+                          ? "Good / Satisfactory"
+                          : "Milestone Cleared"}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-lg bg-emerald-50/40 border border-emerald-200/80 space-y-1 shadow-none">
+                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">
+                        Evaluated By
+                      </span>
+                      <p className="text-xs font-bold text-slate-900 truncate">
+                        {selectedSubmission.evaluated_by || selectedSubmission.guide_name}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        PRC Faculty Advisor
+                      </p>
+                      <span className="text-[11px] text-[#034419] font-mono font-bold block pt-0.5">
+                        Contribution: +{selectedSubmission.progress_contribution || 0}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Rubric Criteria Breakdown (from evaluation_scores) */}
+                  {selectedSubmission.evaluation_scores && selectedSubmission.evaluation_scores.length > 0 && (
+                    <div className="p-3.5 rounded-lg bg-slate-50/50 border border-slate-200/90 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                          <Star className="w-3.5 h-3.5 text-amber-500" />
+                          Criteria Rubric Breakdown
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-mono">
+                          Max 20 pts / Criterion
+                        </span>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {selectedSubmission.evaluation_scores.map((sc: any, idx: number) => {
+                          const maxVal = sc.max_score || 20;
+                          const scoreVal = sc.score ?? 0;
+                          const pct = Math.round((scoreVal / maxVal) * 100);
+                          return (
+                            <div key={idx} className="space-y-1">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-medium text-slate-700">{sc.rubric_criterion}</span>
+                                <span className="font-mono font-bold text-slate-900">
+                                  {scoreVal} / {maxVal} <span className="text-slate-400 font-normal">({pct}%)</span>
+                                </span>
+                              </div>
+                              <div className="w-full bg-slate-200/70 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className="bg-[#034419] h-full rounded-full transition-all duration-300"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                 {/* Rubric Criteria Breakdown */}
                 {selectedSubmission.criteria_scores && (
@@ -534,8 +632,9 @@ export function StudentMySubmissionsPage() {
                   )}
                 </div>
               </div>
+            )}
 
-              {/* B. Resubmission History (If Multiple Attempts) */}
+            {/* B. Resubmission History (If Multiple Attempts) */}
               {selectedSubmission.attempts && selectedSubmission.attempts.length > 1 && (
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-2">

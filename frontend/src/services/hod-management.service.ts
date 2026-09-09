@@ -83,10 +83,14 @@ export interface ManagementProjectDetails {
   title: string;
   description: string;
   domain: string;
-  status: "In Progress" | "Completed" | "Review Pending" | "Approved";
+  status: "In Progress" | "Completed" | "Review Pending" | "Approved" | string;
   github_url?: string;
   demo_url?: string;
+  live_demo_url?: string;
   current_stage: string;
+  problem_statement?: string;
+  proposed_solution?: string;
+  technologies_used?: string;
 }
 
 export interface ManagementTeam {

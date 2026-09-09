@@ -8,6 +8,9 @@ from app.core.config import settings
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,  # Test connections before using them to prevent stale connections
+    pool_recycle=300,    # Recycle connections after 5 mins to avoid dropped sockets by PgBouncer
+    pool_size=2,         # Limit connections to avoid hitting 15 max pool limit
+    max_overflow=3,      # Allow up to 3 extra connections if pool is full
 )
 
 # Session factory
